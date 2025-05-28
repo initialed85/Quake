@@ -8,7 +8,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -44,15 +44,19 @@ void	VID_ShiftPalette (unsigned char *palette)
 
 void	VID_Init (unsigned char *palette)
 {
-	vid.maxwarpwidth = vid.width = vid.conwidth = BASEWIDTH;
-	vid.maxwarpheight = vid.height = vid.conheight = BASEHEIGHT;
+	// the WARP_WIDTH and WARP_HEIGHT constants are used elsewhere relating to
+	// warping (water / lava?) in a way that affects memory alignment, so these
+	// struct properties must be set this way to avoid segfaults
+	vid.maxwarpwidth = WARP_WIDTH;
+	vid.maxwarpheight = WARP_HEIGHT;
+
 	vid.aspect = 1.0;
 	vid.numpages = 1;
 	vid.colormap = host_colormap;
 	vid.fullbright = 256 - LittleLong (*((int *)vid.colormap + 2048));
 	vid.buffer = vid.conbuffer = vid_buffer;
 	vid.rowbytes = vid.conrowbytes = BASEWIDTH;
-	
+
 	d_pzbuffer = zbuffer;
 	D_InitCaches (surfcache, sizeof(surfcache));
 }
@@ -83,5 +87,3 @@ D_EndDirectRect
 void D_EndDirectRect (int x, int y, int width, int height)
 {
 }
-
-

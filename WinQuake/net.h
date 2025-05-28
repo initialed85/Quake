@@ -8,7 +8,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -126,7 +126,7 @@ typedef struct qsocket_s
 	qboolean		disconnected;
 	qboolean		canSend;
 	qboolean		sendNext;
-	
+
 	int				driver;
 	int				landriver;
 	int				socket;
@@ -238,7 +238,7 @@ typedef struct
 extern int hostCacheCount;
 extern hostcache_t hostcache[HOSTCACHESIZE];
 
-#if !defined(_WIN32 ) && !defined (__linux__) && !defined (__sun__)
+#if !defined(_WIN32 ) && !defined (__linux__) && !defined (__sun__) && !defined (__EMSCRIPTEN__)
 #ifndef htonl
 extern unsigned long htonl (unsigned long hostlong);
 #endif

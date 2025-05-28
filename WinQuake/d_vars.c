@@ -8,7 +8,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -37,7 +37,7 @@ float	d_sdivzstepu, d_tdivzstepu, d_zistepu;
 float	d_sdivzstepv, d_tdivzstepv, d_zistepv;
 float	d_sdivzorigin, d_tdivzorigin, d_ziorigin;
 
-fixed16_t	sadjust, tadjust, bbextents, bbextentt;
+fixed16_t	d_sadjust, d_tadjust, d_bbextents, d_bbextentt;
 
 pixel_t			*cacheblock;
 int				cachewidth;
@@ -47,4 +47,3 @@ unsigned int	d_zrowbytes;
 unsigned int	d_zwidth;
 
 #endif	// !id386
-

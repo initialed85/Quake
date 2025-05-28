@@ -1,10 +1,13 @@
+//
+// sys_sdl2.c: SDL2 system implementation; mostly just copypasta from sys_linux.c
+//
+
 #include <unistd.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <sys/time.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -16,8 +19,14 @@
 #include <sys/wait.h>
 #include <sys/mman.h>
 #include <errno.h>
+#include <SDL.h>
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
 
 #include "quakedef.h"
+#include "sys_sdl2.h"
 
 // it seems that newer versions of Linux have deprecated FNDELAY in favour of O_NDELAY
 #ifndef FNDELAY
@@ -28,10 +37,13 @@ qboolean isDedicated;
 
 int nostdout = 0;
 
-char *basedir = ".";
-char *cachedir = "/tmp";
-
 cvar_t sys_linerefresh = {"sys_linerefresh", "0"}; // set for entity display
+
+float mx = 0.0;
+float my = 0.0;
+
+float old_mx = 0.0;
+float old_my = 0.0;
 
 // =======================================================================
 // General routines
@@ -156,7 +168,11 @@ void Sys_Error(char *error, ...)
 	fprintf(stderr, "Error: %s\n", string);
 
 	Host_Shutdown();
+#ifdef __EMSCRIPTEN__
+	emscripten_force_exit(1);
+#else
 	exit(1);
+#endif
 }
 
 void Sys_Warn(char *warning, ...)
@@ -352,85 +368,6 @@ void Sys_LowFPPrecision(void)
 }
 #endif
 
-int main(int c, char **v)
-{
-
-	double time, oldtime, newtime;
-	quakeparms_t parms;
-	extern int vcrFile;
-	extern int recording;
-	int j;
-
-	//	static char cwd[1024];
-
-	//	signal(SIGFPE, floating_point_exception_handler);
-	signal(SIGFPE, SIG_IGN);
-
-	memset(&parms, 0, sizeof(parms));
-
-	COM_InitArgv(c, v);
-	parms.argc = com_argc;
-	parms.argv = com_argv;
-
-#ifdef GLQUAKE
-	parms.memsize = 16 * 1024 * 1024;
-#else
-	parms.memsize = 8 * 1024 * 1024;
-#endif
-
-	j = COM_CheckParm("-mem");
-	if (j)
-		parms.memsize = (int)(Q_atof(com_argv[j + 1]) * 1024 * 1024);
-	parms.membase = malloc(parms.memsize);
-
-	parms.basedir = basedir;
-	// caching is disabled by default, use -cachedir to enable
-	//	parms.cachedir = cachedir;
-
-	fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) | FNDELAY);
-
-	Host_Init(&parms);
-
-	Sys_Init();
-
-	if (COM_CheckParm("-nostdout"))
-		nostdout = 1;
-	else
-	{
-		fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) | FNDELAY);
-		printf("Linux Quake -- Version %0.3f\n", LINUX_VERSION);
-	}
-
-	oldtime = Sys_FloatTime() - 0.1;
-	while (1)
-	{
-		// find time spent rendering last frame
-		newtime = Sys_FloatTime();
-		time = newtime - oldtime;
-
-		if (cls.state == ca_dedicated)
-		{ // play vcrfiles at max speed
-			if (time < sys_ticrate.value && (vcrFile == -1 || recording))
-			{
-				usleep(1);
-				continue; // not time to run a server only tic yet
-			}
-			time = sys_ticrate.value;
-		}
-
-		if (time > sys_ticrate.value * 2)
-			oldtime = newtime;
-		else
-			oldtime += time;
-
-		Host_Frame(time);
-
-		// graphic debugging aids
-		if (sys_linerefresh.value)
-			Sys_LineRefresh();
-	}
-}
-
 /*
 ================
 Sys_MakeCodeWriteable
@@ -452,4 +389,182 @@ void Sys_MakeCodeWriteable(unsigned long startaddr, unsigned long length)
 
 	if (r < 0)
 		Sys_Error("Protection change failed\n");
+}
+
+/*
+================
+Sys_SendKeyEvents - this is where we handle the SDL2 keys, mouse buttons and mouse motion
+================
+*/
+
+void Sys_SendKeyEvents(void)
+{
+	qboolean had_mouse_events = false;
+
+	SDL_Event event;
+
+	// Sys_SendKeyEvents() is called regularly (maybe per frame? idk) and there may be
+	// one or more SDL-side events to be handled
+	while (SDL_PollEvent(&event))
+	{
+		// self-explanatory
+		if (event.type == SDL_QUIT)
+		{
+			Sys_Quit();
+			return;
+		}
+
+		// as in down as in pressed, up as in released
+		if ((event.type == SDL_KEYDOWN) || (event.type == SDL_KEYUP))
+		{
+			// a bunch of the Quake-side key codes are just their ASCII
+			// values and so this catch-all picks up most of those
+			int k = event.key.keysym.sym;
+
+			// but most of the special keys don't match, so they need
+			// special treatment
+			switch (event.key.keysym.scancode)
+			{
+			case SDL_SCANCODE_BACKSPACE:
+				k = K_BACKSPACE;
+				break;
+			case SDL_SCANCODE_UP:
+				k = K_UPARROW;
+				break;
+			case SDL_SCANCODE_DOWN:
+				k = K_DOWNARROW;
+				break;
+			case SDL_SCANCODE_LEFT:
+				k = K_LEFTARROW;
+				break;
+			case SDL_SCANCODE_RIGHT:
+				k = K_RIGHTARROW;
+				break;
+			case SDL_SCANCODE_LALT:
+				k = K_ALT;
+				break;
+			case SDL_SCANCODE_RALT:
+				k = K_ALT;
+				break;
+			case SDL_SCANCODE_LCTRL:
+				k = K_CTRL;
+				break;
+			case SDL_SCANCODE_RCTRL:
+				k = K_CTRL;
+				break;
+			case SDL_SCANCODE_LSHIFT:
+				k = K_SHIFT;
+				break;
+			case SDL_SCANCODE_RSHIFT:
+				k = K_SHIFT;
+				break;
+			case SDL_SCANCODE_F1:
+				k = K_F1;
+				break;
+			case SDL_SCANCODE_F2:
+				k = K_F2;
+				break;
+			case SDL_SCANCODE_F3:
+				k = K_F3;
+				break;
+			case SDL_SCANCODE_F4:
+				k = K_F4;
+				break;
+			case SDL_SCANCODE_F5:
+				k = K_F5;
+				break;
+			case SDL_SCANCODE_F6:
+				k = K_F6;
+				break;
+			case SDL_SCANCODE_F7:
+				k = K_F7;
+				break;
+			case SDL_SCANCODE_F8:
+				k = K_F8;
+				break;
+			case SDL_SCANCODE_F9:
+				k = K_F9;
+				break;
+			case SDL_SCANCODE_F10:
+				k = K_F10;
+				break;
+			case SDL_SCANCODE_F11:
+				k = K_F11;
+				break;
+			case SDL_SCANCODE_F12:
+				k = K_F12;
+				break;
+			case SDL_SCANCODE_INSERT:
+				k = K_INS;
+				break;
+			case SDL_SCANCODE_DELETE:
+				k = K_DEL;
+				break;
+			case SDL_SCANCODE_PAGEDOWN:
+				k = K_PGDN;
+				break;
+			case SDL_SCANCODE_PAGEUP:
+				k = K_PGUP;
+				break;
+			case SDL_SCANCODE_HOME:
+				k = K_HOME;
+				break;
+			case SDL_SCANCODE_END:
+				k = K_END;
+				break;
+			case SDL_SCANCODE_PAUSE:
+				k = K_PAUSE;
+				break;
+			};
+
+			// safeguard in case we somehow end up outside the Quake-side range (e.g.
+			// a key is pressed that we don't support)
+			if (k >= 0 && k <= 255)
+			{
+				Key_Event(k, event.type == SDL_KEYDOWN);
+			}
+		}
+
+		// Quake-side mouse buttons are just treated like keys
+		if ((event.type == SDL_MOUSEBUTTONDOWN) || (event.type == SDL_MOUSEBUTTONUP))
+		{
+			Key_Event(event.button.button + 199, event.type == SDL_MOUSEBUTTONDOWN);
+		}
+
+		// in keeping with the pattern, most of the mouse motion handling work is done
+		// in another event handler- but being that this is our SDL-side event handler,
+		// we need to at least store the values of the relative mouse position here
+		// (relative mouse position is stuff like x: -2, y: 5 where the values are
+		// relative to the mouse position from the previous mouse motion event)
+		if (event.type == SDL_MOUSEMOTION)
+		{
+			mx = (float)(event.motion.xrel);
+			my = (float)(event.motion.yrel);
+			had_mouse_events = true;
+		}
+	}
+
+	// this is important; when you stop moving the mouse, there is no mouse motion event
+	// (which makes sense really)- so if we're on the way out of Sys_SendKeyEvents()
+	// without having seen any SDL2 events, we need to tell Quake that the relative mouse
+	// movement was zero (otherwise it will be the last value we told it and the practical
+	// impact of that is that the mouse will slowly track across the screen even though
+	// you're not touching it)
+	if (!had_mouse_events)
+	{
+		mx = (float)(event.motion.xrel);
+		my = (float)(event.motion.yrel);
+	}
+}
+
+/*
+================
+Sys_Sleep - I guess we yield? idk
+================
+*/
+void Sys_Sleep(void)
+{
+#ifndef __EMSCRIPTEN__
+	SDL_Delay(1);
+#endif
 }

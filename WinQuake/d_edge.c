@@ -8,7 +8,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -25,7 +25,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 static int	miplevel;
 
 float		scale_for_mip;
-int			screenwidth;
+
+// TODO: duplicate symbol '_screenwidth' in [d_edge.c.o, r_main_c.o]
+// int			screenwidth;
+
 int			ubasestep, errorterm, erroradjustup, erroradjustdown;
 int			vstartscan;
 
@@ -85,7 +88,7 @@ void D_DrawSolidSurface (surf_t *surf, int color)
 	espan_t	*span;
 	byte	*pdest;
 	int		u, u2, pix;
-	
+
 	pix = (color<<24) | (color<<16) | (color<<8) | color;
 	for (span=surf->spans ; span ; span=span->pnext)
 	{
@@ -151,18 +154,18 @@ void D_CalcGradients (msurface_t *pface)
 	VectorScale (transformed_modelorg, mipscale, p_temp1);
 
 	t = 0x10000*mipscale;
-	sadjust = ((fixed16_t)(DotProduct (p_temp1, p_saxis) * 0x10000 + 0.5)) -
+	d_sadjust = ((fixed16_t)(DotProduct (p_temp1, p_saxis) * 0x10000 + 0.5)) -
 			((pface->texturemins[0] << 16) >> miplevel)
 			+ pface->texinfo->vecs[0][3]*t;
-	tadjust = ((fixed16_t)(DotProduct (p_temp1, p_taxis) * 0x10000 + 0.5)) -
+	d_tadjust = ((fixed16_t)(DotProduct (p_temp1, p_taxis) * 0x10000 + 0.5)) -
 			((pface->texturemins[1] << 16) >> miplevel)
 			+ pface->texinfo->vecs[1][3]*t;
 
 //
 // -1 (-epsilon) so we never wander off the edge of the texture
 //
-	bbextents = ((pface->extents[0] << 16) >> miplevel) - 1;
-	bbextentt = ((pface->extents[1] << 16) >> miplevel) - 1;
+	d_bbextents = ((pface->extents[0] << 16) >> miplevel) - 1;
+	d_bbextentt = ((pface->extents[1] << 16) >> miplevel) - 1;
 }
 
 
@@ -328,4 +331,3 @@ void D_DrawSurfaces (void)
 		}
 	}
 }
-

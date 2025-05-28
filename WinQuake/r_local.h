@@ -8,7 +8,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -261,7 +261,8 @@ extern edge_t	*r_edges, *edge_p, *edge_max;
 extern	edge_t	*newedges[MAXHEIGHT];
 extern	edge_t	*removeedges[MAXHEIGHT];
 
-extern	int	screenwidth;
+// TODO: duplicate symbol '_screenwidth' in [d_edge.c.o, r_main_c.o]
+// extern	int	screenwidth;
 
 // FIXME: make stack vars when debugging done
 extern	edge_t	edge_head;

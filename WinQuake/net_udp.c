@@ -8,7 +8,7 @@ of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 See the GNU General Public License for more details.
 
@@ -37,7 +37,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <libc.h>
 #endif
 
-extern int gethostname (char *, int);
+#ifdef __EMSCRIPTEN__
+#include <arpa/inet.h>
+#endif
+
+#ifdef LINUX
+#include <arpa/inet.h>
+#include <unistd.h>
+#endif
+
 extern int close (int);
 
 extern cvar_t hostname;
@@ -59,7 +67,7 @@ int UDP_Init (void)
 	char	buff[MAXHOSTNAMELEN];
 	struct qsockaddr addr;
 	char *colon;
-	
+
 	if (COM_CheckParm ("-noudp"))
 		return -1;
 
@@ -178,7 +186,7 @@ static int PartialIPAddress (char *in, struct qsockaddr *hostaddr)
 	int mask;
 	int run;
 	int port;
-	
+
 	buff[0] = '.';
 	b = buff;
 	strcpy(buff+1, in);
@@ -205,16 +213,16 @@ static int PartialIPAddress (char *in, struct qsockaddr *hostaddr)
 		mask<<=8;
 		addr = (addr<<8) + num;
 	}
-	
+
 	if (*b++ == ':')
 		port = Q_atoi(b);
 	else
 		port = net_hostport;
 
 	hostaddr->sa_family = AF_INET;
-	((struct sockaddr_in *)hostaddr)->sin_port = htons((short)port);	
+	((struct sockaddr_in *)hostaddr)->sin_port = htons((short)port);
 	((struct sockaddr_in *)hostaddr)->sin_addr.s_addr = (myAddr & htonl(mask)) | htonl(addr);
-	
+
 	return 0;
 }
 //=============================================================================
@@ -369,13 +377,13 @@ int UDP_GetAddrFromName(char *name, struct qsockaddr *addr)
 
 	if (name[0] >= '0' && name[0] <= '9')
 		return PartialIPAddress (name, addr);
-	
+
 	hostentry = gethostbyname (name);
 	if (!hostentry)
 		return -1;
 
 	addr->sa_family = AF_INET;
-	((struct sockaddr_in *)addr)->sin_port = htons(net_hostport);	
+	((struct sockaddr_in *)addr)->sin_port = htons(net_hostport);
 	((struct sockaddr_in *)addr)->sin_addr.s_addr = *(int *)hostentry->h_addr_list[0];
 
 	return 0;
