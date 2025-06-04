@@ -54,3 +54,5 @@ extern int scr_copyeverything;
 extern qboolean block_drawing;
 
 void SCR_UpdateWholeScreen(void);
+
+extern viddef_t vid;

@@ -413,41 +413,49 @@ void PR_ExecuteProgram(func_t fnum) {
       c->_float = (PROG_TO_EDICT(a->edict) == sv.edicts);
       break;
 
-    case OP_EQ_F:
-      c->_float = a->_float == b->_float;
-      break;
-    case OP_EQ_V:
-      c->_float = (a->vector[0] == b->vector[0]) &&
-                  (a->vector[1] == b->vector[1]) &&
-                  (a->vector[2] == b->vector[2]);
-      break;
-    case OP_EQ_S:
-      c->_float = !strcmp(pr_strings + a->string, pr_strings + b->string);
-      break;
-    case OP_EQ_E:
-      c->_float = a->_int == b->_int;
-      break;
-    case OP_EQ_FNC:
-      c->_float = a->function == b->function;
-      break;
+	case OP_EQ_F:
+		c->_float = a->_float == b->_float;
+		break;
+	case OP_EQ_V:
+		c->_float = (a->vector[0] == b->vector[0]) &&
+					(a->vector[1] == b->vector[1]) &&
+					(a->vector[2] == b->vector[2]);
+		break;
+	case OP_EQ_S:
+      // TODO: this prevents segfault experienced if you run -dedicated; for
+      // some reason, I think a seems uninitialized?
+      if (a->string < 0 || b->string < 0) {
+        c->_float = 0;
+        break;
+      }
 
-    case OP_NE_F:
-      c->_float = a->_float != b->_float;
-      break;
-    case OP_NE_V:
-      c->_float = (a->vector[0] != b->vector[0]) ||
-                  (a->vector[1] != b->vector[1]) ||
-                  (a->vector[2] != b->vector[2]);
-      break;
-    case OP_NE_S:
-      c->_float = strcmp(pr_strings + a->string, pr_strings + b->string);
-      break;
-    case OP_NE_E:
-      c->_float = a->_int != b->_int;
-      break;
-    case OP_NE_FNC:
-      c->_float = a->function != b->function;
-      break;
+      c->_float = !strcmp(pr_strings+a->string,pr_strings+b->string);
+		break;
+	case OP_EQ_E:
+		c->_float = a->_int == b->_int;
+		break;
+	case OP_EQ_FNC:
+		c->_float = a->function == b->function;
+		break;
+
+
+	case OP_NE_F:
+		c->_float = a->_float != b->_float;
+		break;
+	case OP_NE_V:
+		c->_float = (a->vector[0] != b->vector[0]) ||
+					(a->vector[1] != b->vector[1]) ||
+					(a->vector[2] != b->vector[2]);
+		break;
+	case OP_NE_S:
+		c->_float = strcmp(pr_strings+a->string,pr_strings+b->string);
+		break;
+	case OP_NE_E:
+		c->_float = a->_int != b->_int;
+		break;
+	case OP_NE_FNC:
+		c->_float = a->function != b->function;
+		break;
 
       //==================
     case OP_STORE_F:

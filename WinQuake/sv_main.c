@@ -849,7 +849,7 @@ SV_ModelIndex
 int SV_ModelIndex(char *name) {
   int i;
 
-  if (!name || !name[0])
+  if (name == NULL || strlen(name) == 0)
     return 0;
 
   for (i = 0; i < MAX_MODELS && sv.model_precache[i]; i++)

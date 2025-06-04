@@ -766,7 +766,8 @@ void COM_FileBase(char *in, char *out) {
     s--;
 
   for (s2 = s; *s2 && *s2 != '/'; s2--)
-    ;
+    if ((int)s2 - (int)in == 0) // from Ed - fixes weird segfault
+      break;
 
   if (s - s2 < 2)
     strcpy(out, "?model?");

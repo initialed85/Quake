@@ -39,8 +39,12 @@ void VID_SetPalette(unsigned char *palette) {}
 void VID_ShiftPalette(unsigned char *palette) {}
 
 void VID_Init(unsigned char *palette) {
-  vid.maxwarpwidth = vid.width = vid.conwidth = BASEWIDTH;
-  vid.maxwarpheight = vid.height = vid.conheight = BASEHEIGHT;
+  // the WARP_WIDTH and WARP_HEIGHT constants are used elsewhere relating to
+  // warping (water / lava?) in a way that affects memory alignment, so these
+  // struct properties must be set this way to avoid segfaults
+  vid.maxwarpwidth = WARP_WIDTH;
+  vid.maxwarpheight = WARP_HEIGHT;
+
   vid.aspect = 1.0;
   vid.numpages = 1;
   vid.colormap = host_colormap;

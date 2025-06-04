@@ -37,7 +37,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <libc.h>
 #endif
 
-extern int gethostname(char *, int);
+#ifdef __EMSCRIPTEN__
+#include <arpa/inet.h>
+#endif
+
+#ifdef LINUX
+#include <arpa/inet.h>
+#include <unistd.h>
+#endif
+
 extern int close(int);
 
 extern cvar_t hostname;
@@ -86,7 +94,7 @@ int UDP_Init(void) {
   if (colon)
     *colon = 0;
 
-  Con_Printf("UDP Initialized\n");
+  Con_Printf("UDP Initialized at %s\n", UDP_AddrToString(&addr));
   tcpipAvailable = true;
 
   return net_controlsocket;
