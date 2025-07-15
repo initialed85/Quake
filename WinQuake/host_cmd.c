@@ -600,7 +600,7 @@ void Host_Loadgame_f(void) {
       Sys_Error("Loadgame buffer overflow");
     str[i] = 0;
     start = str;
-    start = COM_Parse(str);
+    start = COM_Parse(str, false);
     if (!com_token[0])
       break; // end of file
     if (strcmp(com_token, "{"))
@@ -751,7 +751,7 @@ int LoadGamestate(char *level, char *startspot) {
       Sys_Error("Loadgame buffer overflow");
     str[i] = 0;
     start = str;
-    start = COM_Parse(str);
+    start = COM_Parse(str, false);
     if (!com_token[0])
       break; // end of file
     if (strcmp(com_token, "{"))
@@ -1324,7 +1324,7 @@ void Host_Kick_f(void) {
       return;
 
     if (Cmd_Argc() > 2) {
-      message = COM_Parse(Cmd_Args());
+      message = COM_Parse(Cmd_Args(), false);
       if (byNumber) {
         message++;              // skip the #
         while (*message == ' ') // skip white space

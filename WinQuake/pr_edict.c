@@ -611,7 +611,7 @@ void ED_ParseGlobals(char *data) {
 
   while (1) {
     // parse key
-    data = COM_Parse(data);
+    data = COM_Parse(data, false);
     if (com_token[0] == '}')
       break;
     if (!data)
@@ -620,7 +620,7 @@ void ED_ParseGlobals(char *data) {
     strcpy(keyname, com_token);
 
     // parse value
-    data = COM_Parse(data);
+    data = COM_Parse(data, false);
     if (!data)
       Sys_Error("ED_ParseEntity: EOF without closing brace");
 
@@ -760,7 +760,7 @@ char *ED_ParseEdict(char *data, edict_t *ent) {
   // go through all the dictionary pairs
   while (1) {
     // parse key
-    data = COM_Parse(data);
+    data = COM_Parse(data, false);
     if (com_token[0] == '}')
       break;
     if (!data)
@@ -788,7 +788,7 @@ char *ED_ParseEdict(char *data, edict_t *ent) {
     }
 
     // parse value
-    data = COM_Parse(data);
+    data = COM_Parse(data, false);
     if (!data)
       Sys_Error("ED_ParseEntity: EOF without closing brace");
 
@@ -851,7 +851,7 @@ void ED_LoadFromFile(char *data) {
   // parse ents
   while (1) {
     // parse the opening brace
-    data = COM_Parse(data);
+    data = COM_Parse(data, false);
     if (!data)
       break;
     if (com_token[0] != '{')
@@ -943,6 +943,7 @@ void PR_LoadProgs(void) {
 
   pr_functions = (dfunction_t *)((byte *)progs + progs->ofs_functions);
   pr_strings = (char *)progs + progs->ofs_strings;
+
   pr_globaldefs = (ddef_t *)((byte *)progs + progs->ofs_globaldefs);
   pr_fielddefs = (ddef_t *)((byte *)progs + progs->ofs_fielddefs);
   pr_statements = (dstatement_t *)((byte *)progs + progs->ofs_statements);
@@ -1012,9 +1013,12 @@ void PR_Init(void) {
 }
 
 edict_t *EDICT_NUM(int n) {
+  edict_t *edict;
+
   if (n < 0 || n >= sv.max_edicts)
     Sys_Error("EDICT_NUM: bad number %i", n);
-  return (edict_t *)((byte *)sv.edicts + (n)*pr_edict_size);
+  edict = (edict_t *)((byte *)sv.edicts + (n)*pr_edict_size);
+  return edict;
 }
 
 int NUM_FOR_EDICT(edict_t *e) {

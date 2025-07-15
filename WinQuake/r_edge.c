@@ -49,7 +49,8 @@ espan_t *span_p, *max_span_p;
 
 int r_currentkey;
 
-extern int screenwidth;
+// TODO: duplicate symbol '_screenwidth' in [d_edge.c.o, r_main_c.o]
+// extern int screenwidth;
 
 int current_iv;
 

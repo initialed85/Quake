@@ -29,11 +29,11 @@ typedef struct {
   dfunction_t *f;
 } prstack_t;
 
-#define MAX_STACK_DEPTH 32
+#define MAX_STACK_DEPTH 32 * 8
 prstack_t pr_stack[MAX_STACK_DEPTH];
 int pr_depth;
 
-#define LOCALSTACK_SIZE 2048
+#define LOCALSTACK_SIZE 2048 * 8
 int localstack[LOCALSTACK_SIZE];
 int localstack_used;
 
@@ -422,6 +422,13 @@ void PR_ExecuteProgram(func_t fnum) {
                   (a->vector[2] == b->vector[2]);
       break;
     case OP_EQ_S:
+      // TODO: this prevents segfault experienced if you run -dedicated; for
+      // some reason, I think a seems uninitialized?
+      if (a->string < 0 || b->string < 0 || pr_strings == NULL || !strcmp(pr_strings, "\x00")) {
+        c->_float = 0;
+        break;
+      }
+
       c->_float = !strcmp(pr_strings + a->string, pr_strings + b->string);
       break;
     case OP_EQ_E:
