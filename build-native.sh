@@ -27,16 +27,19 @@ mkdir -p build-native
 cd build-native
 
 if command -v clang-20 >/dev/null 2>&1; then
-    export CC="$(which clang-20)"
+    CC="$(which clang-20)"
 else
-    export CC="$(which clang)"
-end
+    CC="$(which clang)"
+fi
 
 if command -v clang++-20 >/dev/null 2>&1; then
-    export CXX="$(which clang++-20)"
+    CXX="$(which clang++-20)"
 else
-    export CXX="$(which clang++)"
-end
+    CXX="$(which clang++)"
+fi
+
+export CC
+export CXX
 
 if [[ "${DEBUG}" == "1" ]]; then
     ASAN_OPTIONS=detect_leaks=1 cmake -Wno-dev -DCMAKE_BUILD_TYPE=Debug -B . -S ../
