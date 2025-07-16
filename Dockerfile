@@ -3,10 +3,10 @@ FROM ubuntu:24.04
 ARG DEBUG=0
 ENV DEBUG=${DEBUG:-0}
 
-RUN apt-get update && apt-get install -y clang-19 cmake git lldb valgrind
+RUN apt-get update && apt-get install -y clang-20 cmake git lldb valgrind
 
-RUN update-alternatives --install /usr/bin/cc cc /usr/bin/clang-19 100
-RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-19 100
+RUN update-alternatives --install /usr/bin/cc cc /usr/bin/clang-20 100
+RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-20 100
 
 WORKDIR /srv/
 
