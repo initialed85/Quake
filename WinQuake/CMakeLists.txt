@@ -65,10 +65,8 @@ set(DRY_CFLAGS
     "-Wno-void-pointer-to-int-cast"
     "-Wno-error=unused-result"
     "-Wno-error=format-overflow"
-    "-Wno-error=stringop-truncation"
     "-Wno-error=array-bounds"
     "-Wno-error=strict-aliasing"
-    "-Wno-error=aggressive-loop-optimizations"
 )
 
 set(DRY_LDFLAGS)
