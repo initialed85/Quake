@@ -270,7 +270,7 @@ char *PR_ValueString(etype_t type, eval_t *val) {
 
   switch (type) {
   case ev_string:
-    sprintf(line, "%s", pr_strings + val->string);
+    sprintf(line, "'%s'", pr_strings + val->string);
     break;
   case ev_entity:
     sprintf(line, "entity %i", NUM_FOR_EDICT(PROG_TO_EDICT(val->edict)));
@@ -444,6 +444,7 @@ void ED_Print(edict_t *ed) {
     l = strlen(name);
     while (l++ < 15)
       Con_Printf(" ");
+    Con_Printf(": ");
 
     Con_Printf("%s\n", PR_ValueString(d->type, (eval_t *)v));
   }
