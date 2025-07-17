@@ -849,8 +849,12 @@ SV_ModelIndex
 int SV_ModelIndex(char *name) {
   int i;
 
-  if (!name || !name[0])
+  if (name == NULL)
     return 0;
+
+  if (name[0] == '\0') {
+    return 0;
+  }
 
   for (i = 0; i < MAX_MODELS && sv.model_precache[i]; i++)
     if (!strcmp(sv.model_precache[i], name))
@@ -889,7 +893,7 @@ void SV_CreateBaseline(void) {
     if (entnum > 0 && entnum <= svs.maxclients) {
       svent->baseline.colormap = entnum;
       svent->baseline.modelindex = SV_ModelIndex("progs/player.mdl");
-    } else {
+    } else if (svent->v.model > -1 && pr_strings[0] != '\0') {
       svent->baseline.colormap = 0;
       svent->baseline.modelindex = SV_ModelIndex(pr_strings + svent->v.model);
     }
@@ -922,7 +926,7 @@ void SV_SendReconnect(void) {
   char data[128];
   sizebuf_t msg;
 
-  msg.data = data;
+  msg.data = (byte *) data;
   msg.cursize = 0;
   msg.maxsize = sizeof(data);
 
@@ -1085,6 +1089,7 @@ void SV_SpawnServer(char *server)
   ent = EDICT_NUM(0);
   memset(&ent->v, 0, progs->entityfields * 4);
   ent->free = false;
+
   ent->v.model = sv.worldmodel->name - pr_strings;
   ent->v.modelindex = 1; // world model
   ent->v.solid = SOLID_BSP;

@@ -60,7 +60,7 @@ void InsertLinkAfter(link_t *l, link_t *after);
 // (type *)STRUCT_FROM_LINK(link_t *link, type, member)
 // ent = STRUCT_FROM_LINK(link,entity_t,order)
 // FIXME: remove this mess!
-#define STRUCT_FROM_LINK(l, t, m) ((t *)((byte *)l - (int)&(((t *)0)->m)))
+#define STRUCT_FROM_LINK(l, t, m) ((t *)((byte *)l - (long)&(((t *)0)->m)))
 
 //============================================================================
 
@@ -138,7 +138,7 @@ float Q_atof(char *str);
 extern char com_token[1024];
 extern qboolean com_eof;
 
-char *COM_Parse(char *data);
+char *COM_Parse(char *data, qboolean keepcolon);
 
 extern int com_argc;
 extern char **com_argv;

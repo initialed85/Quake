@@ -31,8 +31,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
   (MAXVERTS + 4) // max points in an intermediate
                  //  polygon (while processing)
 // !!! if this is changed, it must be changed in d_ifacea.h too !!!
-#define MAXHEIGHT 1024
-#define MAXWIDTH 1280
+#define MAXHEIGHT 10000
+#define MAXWIDTH 10000
 #define MAXDIMENSION ((MAXHEIGHT > MAXWIDTH) ? MAXHEIGHT : MAXWIDTH)
 
 #define SIN_BUFFER_SIZE (MAXDIMENSION + CYCLE)

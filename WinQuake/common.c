@@ -634,7 +634,7 @@ char *MSG_ReadString(void) {
       break;
     string[l] = c;
     l++;
-  } while (l < sizeof(string) - 1);
+  } while ((unsigned long)l < sizeof(string) - 1);
 
   string[l] = 0;
 
@@ -766,7 +766,9 @@ void COM_FileBase(char *in, char *out) {
     s--;
 
   for (s2 = s; *s2 && *s2 != '/'; s2--)
-    ;
+    // from Ed - fixes weird segfault
+    if ((unsigned long)s2 - (unsigned long)in < 0)
+      break;
 
   if (s - s2 < 2)
     strcpy(out, "?model?");
@@ -806,7 +808,7 @@ COM_Parse
 Parse a token out of a string
 ==============
 */
-char *COM_Parse(char *data) {
+char *COM_Parse(char *data, qboolean keepcolon) {
   int c;
   int len;
 
@@ -846,7 +848,8 @@ skipwhite:
   }
 
   // parse single characters
-  if (c == '{' || c == '}' || c == ')' || c == '(' || c == '\'' || c == ':') {
+  if (c == '{' || c == '}' || c == ')' || c == '(' || c == '\'' ||
+      (!keepcolon && c == ':')) {
     com_token[len] = c;
     len++;
     com_token[len] = 0;
@@ -859,7 +862,8 @@ skipwhite:
     data++;
     len++;
     c = *data;
-    if (c == '{' || c == '}' || c == ')' || c == '(' || c == '\'' || c == ':')
+    if (c == '{' || c == '}' || c == ')' || c == '(' || c == '\'' ||
+        (!keepcolon && c == ':'))
       break;
   } while (c > 32);
 
@@ -1187,7 +1191,7 @@ void COM_CopyFile(char *netpath, char *cachepath) {
   out = Sys_FileOpenWrite(cachepath);
 
   while (remaining) {
-    if (remaining < sizeof(buf))
+    if ((unsigned long)remaining < sizeof(buf))
       count = remaining;
     else
       count = sizeof(buf);
@@ -1363,6 +1367,7 @@ byte *COM_LoadFile(char *path, int usehunk) {
   byte *buf;
   char base[32];
   int len;
+  int fresult;
 
   buf = NULL; // quiet compiler warning
 
@@ -1396,7 +1401,14 @@ byte *COM_LoadFile(char *path, int usehunk) {
   ((byte *)buf)[len] = 0;
 
   Draw_BeginDisc();
-  Sys_FileRead(h, buf, len);
+
+  fresult = Sys_FileRead(h, buf, len);
+  if (fresult < 0)
+    Sys_Error("COM_LoadFile: failed to read len: %d bytes into buf: %p from h: "
+              "%d (path: "
+              "%s, base: %s); fresult: %d",
+              len, buf, h, path, base, fresult);
+
   COM_CloseFile(h);
   Draw_EndDisc();
 

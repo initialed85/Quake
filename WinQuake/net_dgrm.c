@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 // net_dgrm.c
 
 // This is enables a simple IP banning mechanism
-#define BAN_TEST
+// #define BAN_TEST
 
 #ifdef BAN_TEST
 #if defined(_WIN32)
@@ -283,7 +283,7 @@ int Datagram_SendUnreliableMessage(qsocket_t *sock, sizebuf_t *data) {
 }
 
 int Datagram_GetMessage(qsocket_t *sock) {
-  unsigned int length;
+  int length;
   unsigned int flags;
   int ret = 0;
   struct qsockaddr readaddr;
@@ -463,10 +463,10 @@ static int testPollCount;
 static int testDriver;
 static int testSocket;
 
-static void Test_Poll(void);
+static void Test_Poll(void *arg);
 PollProcedure testPollProcedure = {NULL, 0.0, Test_Poll};
 
-static void Test_Poll(void) {
+static void Test_Poll(void *arg) {
   struct qsockaddr clientaddr;
   int control;
   int len;
@@ -475,14 +475,13 @@ static void Test_Poll(void) {
   int colors;
   int frags;
   int connectTime;
-  byte playerNumber;
 
   net_landriverlevel = testDriver;
 
   while (1) {
     len = dfunc.Read(testSocket, net_message.data, net_message.maxsize,
                      &clientaddr);
-    if (len < sizeof(int))
+    if (len < (int) sizeof(int))
       break;
 
     net_message.cursize = len;
@@ -492,7 +491,7 @@ static void Test_Poll(void) {
     MSG_ReadLong();
     if (control == -1)
       break;
-    if ((control & (~NETFLAG_LENGTH_MASK)) != NETFLAG_CTL)
+    if ((control & (~NETFLAG_LENGTH_MASK)) != (int) NETFLAG_CTL)
       break;
     if ((control & NETFLAG_LENGTH_MASK) != len)
       break;
@@ -500,7 +499,7 @@ static void Test_Poll(void) {
     if (MSG_ReadByte() != CCREP_PLAYER_INFO)
       Sys_Error("Unexpected repsonse to Player Info request\n");
 
-    playerNumber = MSG_ReadByte();
+    MSG_ReadByte();
     Q_strcpy(name, MSG_ReadString());
     colors = MSG_ReadLong();
     frags = MSG_ReadLong();
@@ -584,10 +583,10 @@ static qboolean test2InProgress = false;
 static int test2Driver;
 static int test2Socket;
 
-static void Test2_Poll(void);
+static void Test2_Poll(void *arg);
 PollProcedure test2PollProcedure = {NULL, 0.0, Test2_Poll};
 
-static void Test2_Poll(void) {
+static void Test2_Poll(void *arg) {
   struct qsockaddr clientaddr;
   int control;
   int len;
@@ -599,7 +598,7 @@ static void Test2_Poll(void) {
 
   len = dfunc.Read(test2Socket, net_message.data, net_message.maxsize,
                    &clientaddr);
-  if (len < sizeof(int))
+  if (len < (int) sizeof(int))
     goto Reschedule;
 
   net_message.cursize = len;
@@ -609,7 +608,7 @@ static void Test2_Poll(void) {
   MSG_ReadLong();
   if (control == -1)
     goto Error;
-  if ((control & (~NETFLAG_LENGTH_MASK)) != NETFLAG_CTL)
+  if ((control & (~NETFLAG_LENGTH_MASK)) != (int) NETFLAG_CTL)
     goto Error;
   if ((control & NETFLAG_LENGTH_MASK) != len)
     goto Error;
@@ -772,16 +771,20 @@ static qsocket_t *_Datagram_CheckNewConnections(void) {
 
   len = dfunc.Read(acceptsock, net_message.data, net_message.maxsize,
                    &clientaddr);
-  if (len < sizeof(int))
+  if (len < (int) sizeof(int))
     return NULL;
   net_message.cursize = len;
+
+  Con_Printf("_Datagram_CheckNewConnections: handling potential new connection "
+             "from %s\n",
+             dfunc.AddrToString(&clientaddr));
 
   MSG_BeginReading();
   control = BigLong(*((int *)net_message.data));
   MSG_ReadLong();
   if (control == -1)
     return NULL;
-  if ((control & (~NETFLAG_LENGTH_MASK)) != NETFLAG_CTL)
+  if ((control & (~NETFLAG_LENGTH_MASK)) != (int) NETFLAG_CTL)
     return NULL;
   if ((control & NETFLAG_LENGTH_MASK) != len)
     return NULL;
@@ -796,6 +799,8 @@ static qsocket_t *_Datagram_CheckNewConnections(void) {
     MSG_WriteLong(&net_message, 0);
     MSG_WriteByte(&net_message, CCREP_SERVER_INFO);
     dfunc.GetSocketAddr(acceptsock, &newaddr);
+    Con_Printf("_Datagram_CheckNewConnections: newaddr is %s\n",
+               dfunc.AddrToString(&newaddr));
     MSG_WriteString(&net_message, dfunc.AddrToString(&newaddr));
     MSG_WriteString(&net_message, hostname.string);
     MSG_WriteString(&net_message, sv.name);
@@ -926,14 +931,33 @@ static qsocket_t *_Datagram_CheckNewConnections(void) {
   }
 #endif
 
+  Con_Printf("_Datagram_CheckNewConnections: checking to see if %s is already "
+             "connected\n",
+             dfunc.AddrToString(&clientaddr));
+
+  char clientaddrstr[22];
+  char saddrstr[22];
+
+  sprintf(clientaddrstr, "%s", dfunc.AddrToString(&clientaddr));
+
   // see if this guy is already connected
   for (s = net_activeSockets; s; s = s->next) {
     if (s->driver != net_driverlevel)
       continue;
+
+    sprintf(saddrstr, "%s", dfunc.AddrToString(&s->addr));
+
     ret = dfunc.AddrCompare(&clientaddr, &s->addr);
-    if (ret >= 0) {
+    if (ret == 0) {
+      Con_Printf("_Datagram_CheckNewConnections: %s might be %s\n",
+                 clientaddrstr, saddrstr);
+
       // is this a duplicate connection reqeust?
       if (ret == 0 && net_time - s->connecttime < 2.0) {
+        Con_Printf("_Datagram_CheckNewConnections: we think %s being %s is "
+                   "a duplicate connection request\n",
+                   clientaddrstr, saddrstr);
+
         // yes, so send a duplicate reply
         SZ_Clear(&net_message);
         // save space for the header, filled in later
@@ -948,12 +972,20 @@ static qsocket_t *_Datagram_CheckNewConnections(void) {
         SZ_Clear(&net_message);
         return NULL;
       }
+
+      Con_Printf("_Datagram_CheckNewConnections: we think %s being %s is "
+                 "a reconnect (we'll disconnect the existing)\n",
+                 clientaddrstr, saddrstr);
+
       // it's somebody coming back in from a crash/disconnect
       // so close the old qsocket and let their retry get them back in
       NET_Close(s);
       return NULL;
     }
   }
+
+  Con_Printf("_Datagram_CheckNewConnections: %s is right to connect now\n",
+             dfunc.AddrToString(&clientaddr));
 
   // allocate a QSocket
   sock = NET_NewQSocket();
@@ -997,8 +1029,11 @@ static qsocket_t *_Datagram_CheckNewConnections(void) {
   MSG_WriteLong(&net_message, 0);
   MSG_WriteByte(&net_message, CCREP_ACCEPT);
   dfunc.GetSocketAddr(newsock, &newaddr);
-  MSG_WriteLong(&net_message, dfunc.GetSocketPort(&newaddr));
-  //	MSG_WriteString(&net_message, dfunc.AddrToString(&newaddr));
+  int clientport = dfunc.GetSocketPort(&newaddr);
+  Con_Printf("_Datagram_CheckNewConnections: advising client of port %d\n",
+             clientport);
+  MSG_WriteLong(&net_message, clientport);
+  // MSG_WriteString(&net_message, dfunc.AddrToString(&newaddr));
   *((int *)net_message.data) =
       BigLong(NETFLAG_CTL | (net_message.cursize & NETFLAG_LENGTH_MASK));
   dfunc.Write(acceptsock, net_message.data, net_message.cursize, &clientaddr);
@@ -1042,12 +1077,12 @@ static void _Datagram_SearchForHosts(qboolean xmit) {
 
   while ((ret = dfunc.Read(dfunc.controlSock, net_message.data,
                            net_message.maxsize, &readaddr)) > 0) {
-    if (ret < sizeof(int))
+    if (ret < (int) sizeof(int))
       continue;
     net_message.cursize = ret;
 
     // don't answer our own query
-    if (dfunc.AddrCompare(&readaddr, &myaddr) >= 0)
+    if (dfunc.AddrCompare(&readaddr, &myaddr) == 0)
       continue;
 
     // is the cache full?
@@ -1059,7 +1094,7 @@ static void _Datagram_SearchForHosts(qboolean xmit) {
     MSG_ReadLong();
     if (control == -1)
       continue;
-    if ((control & (~NETFLAG_LENGTH_MASK)) != NETFLAG_CTL)
+    if ((control & (~NETFLAG_LENGTH_MASK)) != (int) NETFLAG_CTL)
       continue;
     if ((control & NETFLAG_LENGTH_MASK) != ret)
       continue;
@@ -1136,7 +1171,10 @@ static qsocket_t *_Datagram_Connect(char *host) {
   if (dfunc.GetAddrFromName(host, &sendaddr) == -1)
     return NULL;
 
-  newsock = dfunc.OpenSocket(0);
+  // we'll use the net_hostport (26000 by default) here so that the socket
+  // we open is bound in a deterministic way- then that's all we have to open
+  // on our firewalls in order to play
+  newsock = dfunc.OpenSocket(net_hostport);
   if (newsock == -1)
     return NULL;
 
@@ -1173,17 +1211,15 @@ static qsocket_t *_Datagram_Connect(char *host) {
       if (ret > 0) {
         // is it from the right place?
         if (sfunc.AddrCompare(&readaddr, &sendaddr) != 0) {
-#ifdef DEBUG
           Con_Printf("wrong reply address\n");
-          Con_Printf("Expected: %s\n", StrAddr(&sendaddr));
-          Con_Printf("Received: %s\n", StrAddr(&readaddr));
+          Con_Printf("Expected: %s\n", dfunc.AddrToString(&sendaddr));
+          Con_Printf("Received: %s\n", dfunc.AddrToString(&readaddr));
           SCR_UpdateScreen();
-#endif
           ret = 0;
           continue;
         }
 
-        if (ret < sizeof(int)) {
+        if (ret < (int) sizeof(int)) {
           ret = 0;
           continue;
         }
@@ -1197,7 +1233,7 @@ static qsocket_t *_Datagram_Connect(char *host) {
           ret = 0;
           continue;
         }
-        if ((control & (~NETFLAG_LENGTH_MASK)) != NETFLAG_CTL) {
+        if ((control & (~NETFLAG_LENGTH_MASK)) != (int) NETFLAG_CTL) {
           ret = 0;
           continue;
         }
@@ -1236,9 +1272,13 @@ static qsocket_t *_Datagram_Connect(char *host) {
     goto ErrorReturn;
   }
 
+  int server_socket_port = MSG_ReadLong();
+  Con_Printf("_Datagram_Connect: advising by server of client port %d\n",
+             server_socket_port);
+
   if (ret == CCREP_ACCEPT) {
     Q_memcpy(&sock->addr, &sendaddr, sizeof(struct qsockaddr));
-    dfunc.SetSocketPort(&sock->addr, MSG_ReadLong());
+    dfunc.SetSocketPort(&sock->addr, server_socket_port);
   } else {
     reason = "Bad Response";
     Con_Printf("%s\n", reason);

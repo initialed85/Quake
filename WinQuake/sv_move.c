@@ -19,6 +19,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
 // sv_move.c -- monster movement
 
+// needed to ensure math.h::fabsf works on Linux
+// ref.: https://man7.org/linux/man-pages/man7/feature_test_macros.7.html
+#define _DEFAULT_SOURCE
+
 #include "quakedef.h"
 
 #define STEPSIZE 18
@@ -298,7 +302,7 @@ void SV_NewChaseDir(edict_t *actor, edict_t *enemy, float dist) {
   }
 
   // try other directions
-  if (((rand() & 3) & 1) || abs(deltay) > abs(deltax)) {
+  if (((rand() & 3) & 1) || fabsf(deltay) > fabsf(deltax)) {
     tdir = d[1];
     d[1] = d[2];
     d[2] = tdir;

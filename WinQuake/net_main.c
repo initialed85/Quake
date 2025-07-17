@@ -53,8 +53,8 @@ qboolean slistLocal = true;
 static double slistStartTime;
 static int slistLastShown;
 
-static void Slist_Send(void);
-static void Slist_Poll(void);
+static void Slist_Send(void *arg);
+static void Slist_Poll(void *arg);
 PollProcedure slistSendProcedure = {NULL, 0.0, Slist_Send};
 PollProcedure slistPollProcedure = {NULL, 0.0, Slist_Poll};
 
@@ -224,13 +224,14 @@ static void NET_Port_f(void) {
     return;
   }
 
+  net_hostport = DEFAULTnet_hostport;
+
   n = Q_atoi(Cmd_Argv(1));
   if (n < 1 || n > 65534) {
     Con_Printf("Bad value, must be between 1 and 65534\n");
     return;
   }
 
-  DEFAULTnet_hostport = n;
   net_hostport = n;
 
   if (listening) {
@@ -284,7 +285,7 @@ void NET_Slist_f(void) {
   hostCacheCount = 0;
 }
 
-static void Slist_Send(void) {
+static void Slist_Send(void *arg) {
   for (net_driverlevel = 0; net_driverlevel < net_numdrivers;
        net_driverlevel++) {
     if (!slistLocal && net_driverlevel == 0)
@@ -298,7 +299,7 @@ static void Slist_Send(void) {
     SchedulePollProcedure(&slistSendProcedure, 0.75);
 }
 
-static void Slist_Poll(void) {
+static void Slist_Poll(void *arg) {
   for (net_driverlevel = 0; net_driverlevel < net_numdrivers;
        net_driverlevel++) {
     if (!slistLocal && net_driverlevel == 0)
@@ -730,13 +731,14 @@ void NET_Init(void) {
   if (!i)
     i = COM_CheckParm("-ipxport");
 
+  net_hostport = DEFAULTnet_hostport;
+
   if (i) {
     if (i < com_argc - 1)
-      DEFAULTnet_hostport = Q_atoi(com_argv[i + 1]);
+      net_hostport = Q_atoi(com_argv[i + 1]);
     else
       Sys_Error("NET_Init: you must specify a number after -port");
   }
-  net_hostport = DEFAULTnet_hostport;
 
   if (COM_CheckParm("-listen") || cls.state == ca_dedicated)
     listening = true;

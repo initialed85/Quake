@@ -19,7 +19,11 @@
 
 #include "quakedef.h"
 
-qboolean isDedicated;
+// it seems that newer versions of Linux have deprecated FNDELAY in favour of
+// O_NDELAY
+#ifndef FNDELAY
+#define FNDELAY O_NDELAY
+#endif
 
 int nostdout = 0;
 
@@ -51,32 +55,32 @@ void Sys_Printf (char *fmt, ...)
 void Sys_Printf (char *fmt, ...)
 {
 
-    va_list     argptr;
-    char        text[1024], *t_p;
-    int         l, r;
+        va_list     argptr;
+        char        text[1024], *t_p;
+        int         l, r;
 
         if (nostdout)
                 return;
 
-    va_start (argptr,fmt);
-    vsprintf (text,fmt,argptr);
-    va_end (argptr);
+        va_start (argptr,fmt);
+        vsprintf (text,fmt,argptr);
+        va_end (argptr);
 
-    l = strlen(text);
-    t_p = text;
+        l = strlen(text);
+        t_p = text;
 
 // make sure everything goes through, even though we are non-blocking
-    while (l)
-    {
-        r = write (1, text, l);
-        if (r != l)
-            sleep (0);
-        if (r > 0)
+        while (l)
         {
-            t_p += r;
-            l -= r;
+                r = write (1, text, l);
+                if (r != l)
+                        sleep (0);
+                if (r > 0)
+                {
+                        t_p += r;
+                        l -= r;
+                }
         }
-    }
 
 }
 */
@@ -253,10 +257,9 @@ void Sys_EditFile(char *filename) {
 
 double Sys_FloatTime(void) {
   struct timeval tp;
-  struct timezone tzp;
   static int secbase;
 
-  gettimeofday(&tp, &tzp);
+  gettimeofday(&tp, NULL);
 
   if (!secbase) {
     secbase = tp.tv_sec;

@@ -36,7 +36,7 @@ char *PF_VarString(int first) {
 
   out[0] = 0;
   for (i = first; i < pr_argc; i++) {
-    strcat(out, G_STRING((OFS_PARM0 + i * 3)));
+      strcat(out, G_STRING((OFS_PARM0 + i * 3)));
   }
   return out;
 }
@@ -1219,10 +1219,8 @@ void PF_aim(void) {
   int i, j;
   trace_t tr;
   float dist, bestdist;
-  float speed;
 
   ent = G_EDICT(OFS_PARM0);
-  speed = G_FLOAT(OFS_PARM1);
 
   VectorCopy(ent->v.origin, start);
   start[2] += 20;
@@ -1549,7 +1547,7 @@ void PF_WaterMove(void) {
           if (self->v.dmg > 15)
             self->v.dmg = 10;
           //					T_Damage (self, world, world,
-          //self.dmg, 0, FALSE);
+          // self.dmg, 0, FALSE);
           damage = self->v.dmg;
           self->v.pain_finished = sv.time + 1.0;
         }
@@ -1570,7 +1568,7 @@ void PF_WaterMove(void) {
     if (flags & FL_INWATER) {
       // play leave water sound
       //			sound (self, CHAN_BODY, "misc/outwater.wav", 1,
-      //ATTN_NORM);
+      // ATTN_NORM);
       SV_StartSound(self, CHAN_BODY, "misc/outwater.wav", 255, ATTN_NORM);
       self->v.flags = (float)(flags & ~FL_INWATER);
     }
@@ -1587,7 +1585,7 @@ void PF_WaterMove(void) {
         else
           self->v.dmgtime = sv.time + 1.0;
         //				T_Damage (self, world, world,
-        //10*self.waterlevel, 0, TRUE);
+        // 10*self.waterlevel, 0, TRUE);
         damage = (float)(10 * waterlevel);
       }
   } else if (watertype == CONTENT_SLIME) { // do damage
@@ -1595,7 +1593,7 @@ void PF_WaterMove(void) {
       if (self->v.dmgtime < sv.time && self->v.radsuit_finished < sv.time) {
         self->v.dmgtime = sv.time + 1.0;
         //				T_Damage (self, world, world,
-        //4*self.waterlevel, 0, TRUE);
+        // 4*self.waterlevel, 0, TRUE);
         damage = (float)(4 * waterlevel);
       }
   }
@@ -1605,15 +1603,15 @@ void PF_WaterMove(void) {
     // player enter water sound
     if (watertype == CONTENT_LAVA)
       //			sound (self, CHAN_BODY, "player/inlava.wav", 1,
-      //ATTN_NORM);
+      // ATTN_NORM);
       SV_StartSound(self, CHAN_BODY, "player/inlava.wav", 255, ATTN_NORM);
     if (watertype == CONTENT_WATER)
       //			sound (self, CHAN_BODY, "player/inh2o.wav", 1,
-      //ATTN_NORM);
+      // ATTN_NORM);
       SV_StartSound(self, CHAN_BODY, "player/inh2o.wav", 255, ATTN_NORM);
     if (watertype == CONTENT_SLIME)
       //			sound (self, CHAN_BODY, "player/slimbrn2.wav",
-      //1, ATTN_NORM);
+      // 1, ATTN_NORM);
       SV_StartSound(self, CHAN_BODY, "player/slimbrn2.wav", 255, ATTN_NORM);
 
     self->v.flags = (float)(flags | FL_INWATER);
@@ -1622,7 +1620,7 @@ void PF_WaterMove(void) {
 
   if (!(flags & FL_WATERJUMP)) {
     //		self.velocity = self.velocity -
-    //0.8*self.waterlevel*frametime*self.velocity;
+    // 0.8*self.waterlevel*frametime*self.velocity;
     VectorMA(self->v.velocity, -0.8 * self->v.waterlevel * host_frametime,
              self->v.velocity, self->v.velocity);
   }

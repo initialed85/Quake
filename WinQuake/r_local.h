@@ -259,7 +259,8 @@ extern edge_t *r_edges, *edge_p, *edge_max;
 extern edge_t *newedges[MAXHEIGHT];
 extern edge_t *removeedges[MAXHEIGHT];
 
-extern int screenwidth;
+// TODO: duplicate symbol '_screenwidth' in [d_edge.c.o, r_main_c.o]
+// extern	int	screenwidth;
 
 // FIXME: make stack vars when debugging done
 extern edge_t edge_head;
@@ -305,7 +306,7 @@ void R_PrintDSpeeds(void);
 void R_AnimateLight(void);
 int R_LightPoint(vec3_t p);
 void R_SetupFrame(void);
-void R_cshift_f(void);
+// void R_cshift_f(void);
 void R_EmitEdge(mvertex_t *pv0, mvertex_t *pv1);
 void R_ClipEdge(mvertex_t *pv0, mvertex_t *pv1, clipplane_t *clip);
 void R_SplitEntityOnNode2(mnode_t *node);

@@ -363,10 +363,9 @@ SND_Spatialize
 */
 void SND_Spatialize(channel_t *ch) {
   vec_t dot;
-  vec_t ldist, rdist, dist;
+  vec_t dist;
   vec_t lscale, rscale, scale;
   vec3_t source_vec;
-  sfx_t *snd;
 
   // anything coming from the view entity will allways be full volume
   if (ch->entnum == cl.viewentity) {
@@ -377,7 +376,6 @@ void SND_Spatialize(channel_t *ch) {
 
   // calculate stereo seperation and distance attenuation
 
-  snd = ch->sfx;
   VectorSubtract(ch->origin, listener_origin, source_vec);
 
   dist = VectorNormalize(source_vec) * ch->dist_mult;
@@ -789,7 +787,7 @@ void S_Update_(void) {
   // mix ahead of current position
   endtime = soundtime + _snd_mixahead.value * shm->speed;
   samps = shm->samples >> (shm->channels - 1);
-  if (endtime - soundtime > samps)
+  if ((int) endtime - soundtime > samps)
     endtime = soundtime + samps;
 
 #ifdef _WIN32

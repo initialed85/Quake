@@ -611,7 +611,7 @@ void ED_ParseGlobals(char *data) {
 
   while (1) {
     // parse key
-    data = COM_Parse(data);
+    data = COM_Parse(data, false);
     if (com_token[0] == '}')
       break;
     if (!data)
@@ -620,7 +620,7 @@ void ED_ParseGlobals(char *data) {
     strcpy(keyname, com_token);
 
     // parse value
-    data = COM_Parse(data);
+    data = COM_Parse(data, false);
     if (!data)
       Sys_Error("ED_ParseEntity: EOF without closing brace");
 
@@ -760,7 +760,7 @@ char *ED_ParseEdict(char *data, edict_t *ent) {
   // go through all the dictionary pairs
   while (1) {
     // parse key
-    data = COM_Parse(data);
+    data = COM_Parse(data, false);
     if (com_token[0] == '}')
       break;
     if (!data)
@@ -788,7 +788,7 @@ char *ED_ParseEdict(char *data, edict_t *ent) {
     }
 
     // parse value
-    data = COM_Parse(data);
+    data = COM_Parse(data, false);
     if (!data)
       Sys_Error("ED_ParseEntity: EOF without closing brace");
 
@@ -851,7 +851,7 @@ void ED_LoadFromFile(char *data) {
   // parse ents
   while (1) {
     // parse the opening brace
-    data = COM_Parse(data);
+    data = COM_Parse(data, false);
     if (!data)
       break;
     if (com_token[0] != '{')
@@ -922,16 +922,19 @@ void PR_LoadProgs(void) {
 
   CRC_Init(&pr_crc);
 
+  // progs = (dprograms_t *)COM_LoadHunkFile("progs/progs.dat");
+  // if (!progs)
   progs = (dprograms_t *)COM_LoadHunkFile("progs.dat");
   if (!progs)
     Sys_Error("PR_LoadProgs: couldn't load progs.dat");
+
   Con_DPrintf("Programs occupy %iK.\n", com_filesize / 1024);
 
   for (i = 0; i < com_filesize; i++)
     CRC_ProcessByte(&pr_crc, ((byte *)progs)[i]);
 
   // byte swap the header
-  for (i = 0; i < sizeof(*progs) / 4; i++)
+  for (i = 0; i < (int)sizeof(*progs) / 4; i++)
     ((int *)progs)[i] = LittleLong(((int *)progs)[i]);
 
   if (progs->version != PROG_VERSION)

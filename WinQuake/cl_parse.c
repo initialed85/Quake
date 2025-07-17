@@ -303,7 +303,6 @@ void CL_ParseUpdate(int bits) {
   qboolean forcelink;
   entity_t *ent;
   int num;
-  int skin;
 
   if (cls.signon == SIGNONS - 1) { // first update is the final signon stage
     cls.signon = SIGNONS;
@@ -724,6 +723,7 @@ void CL_ParseServerMessage(void) {
 
     case svc_disconnect:
       Host_EndGame("Server disconnected\n");
+      break;
 
     case svc_print:
       Con_Printf("%s", MSG_ReadString());

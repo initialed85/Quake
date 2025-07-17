@@ -25,7 +25,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 static int miplevel;
 
 float scale_for_mip;
-int screenwidth;
+
 int ubasestep, errorterm, erroradjustup, erroradjustdown;
 int vstartscan;
 
@@ -111,13 +111,10 @@ D_CalcGradients
 ==============
 */
 void D_CalcGradients(msurface_t *pface) {
-  mplane_t *pplane;
   float mipscale;
   vec3_t p_temp1;
   vec3_t p_saxis, p_taxis;
   float t;
-
-  pplane = pface->plane;
 
   mipscale = 1.0 / (float)(1 << miplevel);
 
@@ -140,18 +137,18 @@ void D_CalcGradients(msurface_t *pface) {
   VectorScale(transformed_modelorg, mipscale, p_temp1);
 
   t = 0x10000 * mipscale;
-  sadjust = ((fixed16_t)(DotProduct(p_temp1, p_saxis) * 0x10000 + 0.5)) -
-            ((pface->texturemins[0] << 16) >> miplevel) +
-            pface->texinfo->vecs[0][3] * t;
-  tadjust = ((fixed16_t)(DotProduct(p_temp1, p_taxis) * 0x10000 + 0.5)) -
-            ((pface->texturemins[1] << 16) >> miplevel) +
-            pface->texinfo->vecs[1][3] * t;
+  d_sadjust = ((fixed16_t)(DotProduct(p_temp1, p_saxis) * 0x10000 + 0.5)) -
+              ((pface->texturemins[0] << 16) >> miplevel) +
+              pface->texinfo->vecs[0][3] * t;
+  d_tadjust = ((fixed16_t)(DotProduct(p_temp1, p_taxis) * 0x10000 + 0.5)) -
+              ((pface->texturemins[1] << 16) >> miplevel) +
+              pface->texinfo->vecs[1][3] * t;
 
   //
   // -1 (-epsilon) so we never wander off the edge of the texture
   //
-  bbextents = ((pface->extents[0] << 16) >> miplevel) - 1;
-  bbextentt = ((pface->extents[1] << 16) >> miplevel) - 1;
+  d_bbextents = ((pface->extents[0] << 16) >> miplevel) - 1;
+  d_bbextentt = ((pface->extents[1] << 16) >> miplevel) - 1;
 }
 
 /*
@@ -180,7 +177,7 @@ void D_DrawSurfaces(void) {
       d_zistepv = s->d_zistepv;
       d_ziorigin = s->d_ziorigin;
 
-      D_DrawSolidSurface(s, (int)s->data & 0xFF);
+      D_DrawSolidSurface(s, (long)s->data & 0xFF);
       D_DrawZSpans(s->spans);
     }
   } else {

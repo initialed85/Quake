@@ -49,7 +49,8 @@ espan_t *span_p, *max_span_p;
 
 int r_currentkey;
 
-extern int screenwidth;
+// TODO: duplicate symbol '_screenwidth' in [d_edge.c.o, r_main_c.o]
+// extern int screenwidth;
 
 int current_iv;
 
@@ -630,7 +631,7 @@ void R_ScanEdges(void) {
   edge_aftertail.prev = &edge_tail;
 
   // FIXME: do we need this now that we clamp x in r_draw.c?
-  edge_sentinel.u = 2000 << 24; // make sure nothing sorts past this
+  edge_sentinel.u = (long) 2000 << 24; // make sure nothing sorts past this
   edge_sentinel.prev = &edge_aftertail;
 
   //

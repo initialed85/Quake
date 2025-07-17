@@ -37,7 +37,15 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <libc.h>
 #endif
 
-extern int gethostname(char *, int);
+#ifdef __EMSCRIPTEN__
+#include <arpa/inet.h>
+#endif
+
+#ifdef LINUX
+#include <arpa/inet.h>
+#include <unistd.h>
+#endif
+
 extern int close(int);
 
 extern cvar_t hostname;
@@ -73,12 +81,16 @@ int UDP_Init(void) {
     Cvar_Set("hostname", buff);
   }
 
+  // net_controlsocket is used by the client to carry broadcasts while searching
+  // for servers; I figure we can leave this behaviour as-is because broadcast
+  // only works on your layer 2 segment (and so the NAT issues we're trying to
+  // work around don't apply)
   if ((net_controlsocket = UDP_OpenSocket(0)) == -1)
     Sys_Error("UDP_Init: Unable to open control socket\n");
 
   ((struct sockaddr_in *)&broadcastaddr)->sin_family = AF_INET;
   ((struct sockaddr_in *)&broadcastaddr)->sin_addr.s_addr = INADDR_BROADCAST;
-  ((struct sockaddr_in *)&broadcastaddr)->sin_port = htons(net_hostport);
+  ((struct sockaddr_in *)&broadcastaddr)->sin_port = htons(DEFAULTnet_hostport);
 
   UDP_GetSocketAddr(net_controlsocket, &addr);
   Q_strcpy(my_tcpip_address, UDP_AddrToString(&addr));
@@ -86,7 +98,7 @@ int UDP_Init(void) {
   if (colon)
     *colon = 0;
 
-  Con_Printf("UDP Initialized\n");
+  Con_Printf("UDP Initialized at %s\n", UDP_AddrToString(&addr));
   tcpipAvailable = true;
 
   return net_controlsocket;
@@ -136,6 +148,14 @@ int UDP_OpenSocket(int port) {
   address.sin_port = htons(port);
   if (bind(newsocket, (void *)&address, sizeof(address)) == -1)
     goto ErrorReturn;
+
+  struct qsockaddr boundaddr;
+
+  UDP_GetSocketAddr(newsocket, &boundaddr);
+
+  Con_Printf("UDP_OpenSocket: bind socket for %s returned %s\n",
+             UDP_AddrToString((struct qsockaddr *)&address),
+             UDP_AddrToString((struct qsockaddr *)&boundaddr));
 
   return newsocket;
 
@@ -229,12 +249,21 @@ int UDP_CheckNewConnections(void) {
 //=============================================================================
 
 int UDP_Read(int socket, byte *buf, int len, struct qsockaddr *addr) {
-  int addrlen = sizeof(struct qsockaddr);
+  socklen_t addrlen = sizeof(struct qsockaddr);
   int ret;
 
   ret = recvfrom(socket, buf, len, 0, (struct sockaddr *)addr, &addrlen);
+
+  // in macOS, sockaddr has a "__uint8_t sa_len" in front of "sa_family_t
+  // sa_family" so we have to shift to avoid that byte ending up qsockaddr
+  // "short sa_family"
+#ifdef NeXT
+  addr->sa_family >>= 8;
+#endif
+
   if (ret == -1 && (errno == EWOULDBLOCK || errno == ECONNREFUSED))
     return 0;
+
   return ret;
 }
 
@@ -283,15 +312,31 @@ int UDP_Write(int socket, byte *buf, int len, struct qsockaddr *addr) {
 
 //=============================================================================
 
+// TODO: you have to be careful with this function because the buffer is
+// statically assigned
 char *UDP_AddrToString(struct qsockaddr *addr) {
   static char buffer[22];
   int haddr;
 
   haddr = ntohl(((struct sockaddr_in *)addr)->sin_addr.s_addr);
+
   sprintf(buffer, "%d.%d.%d.%d:%d", (haddr >> 24) & 0xff, (haddr >> 16) & 0xff,
           (haddr >> 8) & 0xff, haddr & 0xff,
           ntohs(((struct sockaddr_in *)addr)->sin_port));
+
   return buffer;
+}
+
+//=============================================================================
+
+void UDP_AddrToString2(struct qsockaddr *addr, char buffer[22]) {
+  int haddr;
+
+  haddr = ntohl(((struct sockaddr_in *)addr)->sin_addr.s_addr);
+
+  sprintf(buffer, "%d.%d.%d.%d:%d", (haddr >> 24) & 0xff, (haddr >> 16) & 0xff,
+          (haddr >> 8) & 0xff, haddr & 0xff,
+          ntohs(((struct sockaddr_in *)addr)->sin_port));
 }
 
 //=============================================================================
@@ -312,14 +357,10 @@ int UDP_StringToAddr(char *string, struct qsockaddr *addr) {
 //=============================================================================
 
 int UDP_GetSocketAddr(int socket, struct qsockaddr *addr) {
-  int addrlen = sizeof(struct qsockaddr);
-  unsigned int a;
+  socklen_t addrlen = sizeof(struct qsockaddr);
 
   Q_memset(addr, 0, sizeof(struct qsockaddr));
   getsockname(socket, (struct sockaddr *)addr, &addrlen);
-  a = ((struct sockaddr_in *)addr)->sin_addr.s_addr;
-  if (a == 0 || a == inet_addr("127.0.0.1"))
-    ((struct sockaddr_in *)addr)->sin_addr.s_addr = myAddr;
 
   return 0;
 }
@@ -363,18 +404,30 @@ int UDP_GetAddrFromName(char *name, struct qsockaddr *addr) {
 //=============================================================================
 
 int UDP_AddrCompare(struct qsockaddr *addr1, struct qsockaddr *addr2) {
-  if (addr1->sa_family != addr2->sa_family)
-    return -1;
+  // TODO: because in macOS sockaddr has a "__uint8_t sa_len" in front of
+  // "sa_family_t sa_family" so we have to shift to avoid that byte ending up
+  // qsockaddr "short sa_family"- unfortunately its hard to know where we do
+  // and don't have to do this so we just shoddily compare the strings for now
+  // if (addr1->sa_family != addr2->sa_family)
+  //   return -1;
 
-  if (((struct sockaddr_in *)addr1)->sin_addr.s_addr !=
-      ((struct sockaddr_in *)addr2)->sin_addr.s_addr)
-    return -1;
+  // if (((struct sockaddr_in *)addr1)->sin_addr.s_addr !=
+  //     ((struct sockaddr_in *)addr2)->sin_addr.s_addr)
+  //   return -1;
 
-  if (((struct sockaddr_in *)addr1)->sin_port !=
-      ((struct sockaddr_in *)addr2)->sin_port)
-    return 1;
+  // if (((struct sockaddr_in *)addr1)->sin_port !=
+  //     ((struct sockaddr_in *)addr2)->sin_port)
+  //   return 1;
 
-  return 0;
+  // return 0;
+
+  char a[22];
+  char b[22];
+
+  UDP_AddrToString2(addr1, a);
+  UDP_AddrToString2(addr2, b);
+
+  return strcmp(a, b) == 0 ? 0 : -1;
 }
 
 //=============================================================================

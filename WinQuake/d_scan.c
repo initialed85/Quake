@@ -143,15 +143,15 @@ void Turbulent8(espan_t *pspan) {
     zi = d_ziorigin + dv * d_zistepv + du * d_zistepu;
     z = (float)0x10000 / zi; // prescale to 16.16 fixed-point
 
-    r_turb_s = (int)(sdivz * z) + sadjust;
-    if (r_turb_s > bbextents)
-      r_turb_s = bbextents;
+    r_turb_s = (int)(sdivz * z) + d_sadjust;
+    if (r_turb_s > d_bbextents)
+      r_turb_s = d_bbextents;
     else if (r_turb_s < 0)
       r_turb_s = 0;
 
-    r_turb_t = (int)(tdivz * z) + tadjust;
-    if (r_turb_t > bbextentt)
-      r_turb_t = bbextentt;
+    r_turb_t = (int)(tdivz * z) + d_tadjust;
+    if (r_turb_t > d_bbextentt)
+      r_turb_t = d_bbextentt;
     else if (r_turb_t < 0)
       r_turb_t = 0;
 
@@ -172,17 +172,17 @@ void Turbulent8(espan_t *pspan) {
         zi += zi16stepu;
         z = (float)0x10000 / zi; // prescale to 16.16 fixed-point
 
-        snext = (int)(sdivz * z) + sadjust;
-        if (snext > bbextents)
-          snext = bbextents;
+        snext = (int)(sdivz * z) + d_sadjust;
+        if (snext > d_bbextents)
+          snext = d_bbextents;
         else if (snext < 16)
           snext = 16; // prevent round-off error on <0 steps from
                       //  from causing overstepping & running off the
                       //  edge of the texture
 
-        tnext = (int)(tdivz * z) + tadjust;
-        if (tnext > bbextentt)
-          tnext = bbextentt;
+        tnext = (int)(tdivz * z) + d_tadjust;
+        if (tnext > d_bbextentt)
+          tnext = d_bbextentt;
         else if (tnext < 16)
           tnext = 16; // guard against round-off error on <0 steps
 
@@ -198,17 +198,17 @@ void Turbulent8(espan_t *pspan) {
         tdivz += d_tdivzstepu * spancountminus1;
         zi += d_zistepu * spancountminus1;
         z = (float)0x10000 / zi; // prescale to 16.16 fixed-point
-        snext = (int)(sdivz * z) + sadjust;
-        if (snext > bbextents)
-          snext = bbextents;
+        snext = (int)(sdivz * z) + d_sadjust;
+        if (snext > d_bbextents)
+          snext = d_bbextents;
         else if (snext < 16)
           snext = 16; // prevent round-off error on <0 steps from
                       //  from causing overstepping & running off the
                       //  edge of the texture
 
-        tnext = (int)(tdivz * z) + tadjust;
-        if (tnext > bbextentt)
-          tnext = bbextentt;
+        tnext = (int)(tdivz * z) + d_tadjust;
+        if (tnext > d_bbextentt)
+          tnext = d_bbextentt;
         else if (tnext < 16)
           tnext = 16; // guard against round-off error on <0 steps
 
@@ -269,15 +269,15 @@ void D_DrawSpans8(espan_t *pspan) {
     zi = d_ziorigin + dv * d_zistepv + du * d_zistepu;
     z = (float)0x10000 / zi; // prescale to 16.16 fixed-point
 
-    s = (int)(sdivz * z) + sadjust;
-    if (s > bbextents)
-      s = bbextents;
+    s = (int)(sdivz * z) + d_sadjust;
+    if (s > d_bbextents)
+      s = d_bbextents;
     else if (s < 0)
       s = 0;
 
-    t = (int)(tdivz * z) + tadjust;
-    if (t > bbextentt)
-      t = bbextentt;
+    t = (int)(tdivz * z) + d_tadjust;
+    if (t > d_bbextentt)
+      t = d_bbextentt;
     else if (t < 0)
       t = 0;
 
@@ -298,17 +298,17 @@ void D_DrawSpans8(espan_t *pspan) {
         zi += zi8stepu;
         z = (float)0x10000 / zi; // prescale to 16.16 fixed-point
 
-        snext = (int)(sdivz * z) + sadjust;
-        if (snext > bbextents)
-          snext = bbextents;
+        snext = (int)(sdivz * z) + d_sadjust;
+        if (snext > d_bbextents)
+          snext = d_bbextents;
         else if (snext < 8)
           snext = 8; // prevent round-off error on <0 steps from
                      //  from causing overstepping & running off the
                      //  edge of the texture
 
-        tnext = (int)(tdivz * z) + tadjust;
-        if (tnext > bbextentt)
-          tnext = bbextentt;
+        tnext = (int)(tdivz * z) + d_tadjust;
+        if (tnext > d_bbextentt)
+          tnext = d_bbextentt;
         else if (tnext < 8)
           tnext = 8; // guard against round-off error on <0 steps
 
@@ -324,17 +324,17 @@ void D_DrawSpans8(espan_t *pspan) {
         tdivz += d_tdivzstepu * spancountminus1;
         zi += d_zistepu * spancountminus1;
         z = (float)0x10000 / zi; // prescale to 16.16 fixed-point
-        snext = (int)(sdivz * z) + sadjust;
-        if (snext > bbextents)
-          snext = bbextents;
+        snext = (int)(sdivz * z) + d_sadjust;
+        if (snext > d_bbextents)
+          snext = d_bbextents;
         else if (snext < 8)
           snext = 8; // prevent round-off error on <0 steps from
                      //  from causing overstepping & running off the
                      //  edge of the texture
 
-        tnext = (int)(tdivz * z) + tadjust;
-        if (tnext > bbextentt)
-          tnext = bbextentt;
+        tnext = (int)(tdivz * z) + d_tadjust;
+        if (tnext > d_bbextentt)
+          tnext = d_bbextentt;
         else if (tnext < 8)
           tnext = 8; // guard against round-off error on <0 steps
 
@@ -345,7 +345,13 @@ void D_DrawSpans8(espan_t *pspan) {
       }
 
       do {
+        // pbase is the start of the memory range
+        // s >> 16 scales s so that 0 -> 65535 = 0, 65536 -> 131071 = 1, ...
+        // t >> 16 scales t so that 0 -> 65535 = 0, 65536 -> 131071 = 1, ...
+        // cachewidth is either 64, (D_CacheSurface (pface, miplevel))->width or
+        // r_spritedesc.pspriteframe->width
         *pdest++ = *(pbase + (s >> 16) + (t >> 16) * cachewidth);
+
         s += sstep;
         t += tstep;
       } while (--spancount > 0);

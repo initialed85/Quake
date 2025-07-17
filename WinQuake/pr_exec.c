@@ -422,7 +422,27 @@ void PR_ExecuteProgram(func_t fnum) {
                   (a->vector[2] == b->vector[2]);
       break;
     case OP_EQ_S:
+      printf("\ncase OP_EQ_S: %s == %s ...\n", (char *)pr_strings + a->string,
+             (char *)pr_strings + b->string);
+
+      printf("BEFORE | a: %p, b: %p, c: %p, c->_float: %p, pr_strings: %p, "
+             "a->string: %p (%d | %f | %x), "
+             "b->string: %p (%d | %f | %x)\n",
+             &a, &b, &c, &c->_float, pr_strings, &a->string, a->string,
+             (double)a->string, (unsigned int)a->string, &b->string, b->string,
+             (double)b->string, (unsigned int)b->string);
+
       c->_float = !strcmp(pr_strings + a->string, pr_strings + b->string);
+
+      printf("case OP_EQ_S: (a) == (b) = %f\n", c->_float);
+
+      printf("BEFORE | a: %p, b: %p, c: %p, c->_float: %p, pr_strings: %p, "
+             "a->string: %p (%d | %f | %x), "
+             "b->string: %p (%d | %f | %x)\n",
+             &a, &b, &c, &c->_float, pr_strings, &a->string, a->string,
+             (double)a->string, (unsigned int)a->string, &b->string, b->string,
+             (double)b->string, (unsigned int)b->string);
+
       break;
     case OP_EQ_E:
       c->_float = a->_int == b->_int;

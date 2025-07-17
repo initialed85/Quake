@@ -1236,7 +1236,7 @@ char *bindnames[][2] = {
     {"+mlook", "mouse look"},    {"+klook", "keyboard look"},
     {"+moveup", "swim up"},      {"+movedown", "swim down"}};
 
-#define NUMCOMMANDS (sizeof(bindnames) / sizeof(bindnames[0]))
+#define NUMCOMMANDS (int) (sizeof(bindnames) / sizeof(bindnames[0]))
 
 int keys_cursor;
 int bind_grab;
@@ -1287,7 +1287,7 @@ void M_UnbindCommand(char *command) {
 }
 
 void M_Keys_Draw(void) {
-  int i, l;
+  int i;
   int keys[2];
   char *name;
   int x, y;
@@ -1306,8 +1306,6 @@ void M_Keys_Draw(void) {
     y = 48 + 8 * i;
 
     M_Print(16, y, bindnames[i][1]);
-
-    l = strlen(bindnames[i][0]);
 
     M_FindKeysForCommand(bindnames[i][0], keys);
 

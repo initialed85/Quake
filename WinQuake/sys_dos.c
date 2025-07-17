@@ -58,8 +58,6 @@ static double curtime = 0.0;
 static double lastcurtime = 0.0;
 static double oldtime = 0.0;
 
-static qboolean isDedicated;
-
 static int minmem;
 
 float fptest_temp;
@@ -78,7 +76,7 @@ extern byte end;
 void Sys_InitStackCheck (void)
 {
 	int		i;
-	
+
 	for (i=0 ; i<128*1024 ; i++)
 		(&end)[i] = CHECKBYTE;
 }
@@ -86,11 +84,11 @@ void Sys_InitStackCheck (void)
 void Sys_StackCheck (void)
 {
 	int		i;
-	
+
 	for (i=0 ; i<128*1024 ; i++)
 		if ( (&end)[i] != CHECKBYTE )
 			break;
-	
+
 	Con_Printf ("%i undisturbed stack bytes\n", i);
 	if (end != CHECKBYTE)
 		Sys_Error ("System stack overflow!");

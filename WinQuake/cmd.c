@@ -408,7 +408,7 @@ Cmd_Argv
 ============
 */
 char *Cmd_Argv(int arg) {
-  if ((unsigned)arg >= cmd_argc)
+  if ((unsigned)arg >= (unsigned)cmd_argc)
     return cmd_null_string;
   return cmd_argv[arg];
 }
@@ -454,7 +454,7 @@ void Cmd_TokenizeString(char *text) {
     if (cmd_argc == 1)
       cmd_args = text;
 
-    text = COM_Parse(text);
+    text = COM_Parse(text, true);
     if (!text)
       return;
 
