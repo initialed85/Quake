@@ -230,6 +230,8 @@ typedef struct {
 extern int hostCacheCount;
 extern hostcache_t hostcache[HOSTCACHESIZE];
 
+// added by initialed85
+#ifndef __EMSCRIPTEN__
 #if !defined(_WIN32) && !defined(__linux__) && !defined(__sun__)
 #ifndef htonl
 extern unsigned long htonl(unsigned long hostlong);
@@ -242,6 +244,7 @@ extern unsigned long ntohl(unsigned long netlong);
 #endif
 #ifndef ntohs
 extern unsigned short ntohs(unsigned short netshort);
+#endif
 #endif
 #endif
 

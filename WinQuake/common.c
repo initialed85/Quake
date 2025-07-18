@@ -766,7 +766,11 @@ void COM_FileBase(char *in, char *out) {
     s--;
 
   for (s2 = s; *s2 && *s2 != '/'; s2--)
-    ;
+    // added by initialed85
+    if ((int)s2 - (int)in == 0) {
+      s2--;
+      break;
+    }
 
   if (s - s2 < 2)
     strcpy(out, "?model?");

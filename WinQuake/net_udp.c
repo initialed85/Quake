@@ -37,7 +37,12 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <libc.h>
 #endif
 
-extern int gethostname(char *, int);
+#ifdef __EMSCRIPTEN__
+#include <arpa/inet.h>
+#endif
+
+// changed by initialed85
+extern int gethostname(char *, size_t);
 extern int close(int);
 
 extern cvar_t hostname;
