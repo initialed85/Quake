@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 dprograms_t *progs;
 dfunction_t *pr_functions;
 char *pr_strings;
+int pr_stringssize;
 ddef_t *pr_fielddefs;
 ddef_t *pr_globaldefs;
 dstatement_t *pr_statements;
@@ -611,7 +612,7 @@ void ED_ParseGlobals(char *data) {
 
   while (1) {
     // parse key
-    data = COM_Parse(data);
+    data = COM_Parse(data, false);
     if (com_token[0] == '}')
       break;
     if (!data)
@@ -620,7 +621,7 @@ void ED_ParseGlobals(char *data) {
     strcpy(keyname, com_token);
 
     // parse value
-    data = COM_Parse(data);
+    data = COM_Parse(data, false);
     if (!data)
       Sys_Error("ED_ParseEntity: EOF without closing brace");
 
@@ -760,7 +761,7 @@ char *ED_ParseEdict(char *data, edict_t *ent) {
   // go through all the dictionary pairs
   while (1) {
     // parse key
-    data = COM_Parse(data);
+    data = COM_Parse(data, false);
     if (com_token[0] == '}')
       break;
     if (!data)
@@ -788,7 +789,7 @@ char *ED_ParseEdict(char *data, edict_t *ent) {
     }
 
     // parse value
-    data = COM_Parse(data);
+    data = COM_Parse(data, false);
     if (!data)
       Sys_Error("ED_ParseEntity: EOF without closing brace");
 
@@ -851,7 +852,7 @@ void ED_LoadFromFile(char *data) {
   // parse ents
   while (1) {
     // parse the opening brace
-    data = COM_Parse(data);
+    data = COM_Parse(data, false);
     if (!data)
       break;
     if (com_token[0] != '{')
@@ -943,6 +944,7 @@ void PR_LoadProgs(void) {
 
   pr_functions = (dfunction_t *)((byte *)progs + progs->ofs_functions);
   pr_strings = (char *)progs + progs->ofs_strings;
+  pr_stringssize = progs->numstrings;
   pr_globaldefs = (ddef_t *)((byte *)progs + progs->ofs_globaldefs);
   pr_fielddefs = (ddef_t *)((byte *)progs + progs->ofs_fielddefs);
   pr_statements = (dstatement_t *)((byte *)progs + progs->ofs_statements);

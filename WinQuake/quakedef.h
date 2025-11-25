@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define WINQUAKE_VERSION 0.996
 #define LINUX_VERSION 1.30
 #define X11_VERSION 1.10
+#define SDL2_VERSION 0.01 // added by initialed85
 
 // define	PARANOID			// speed sapping error checking
 
@@ -103,7 +104,7 @@ void VID_UnlockBuffer(void);
 //
 // per-level limits
 //
-#define MAX_EDICTS 600 // FIXME: ouch! ouch! ouch!
+#define MAX_EDICTS 1200 // FIXME: ouch! ouch! ouch!
 #define MAX_LIGHTSTYLES 64
 #define MAX_MODELS 256 // these are sent over the net as bytes
 #define MAX_SOUNDS 256 // so they cannot be blindly increased

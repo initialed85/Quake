@@ -1,0 +1,61 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug (native) - UI",
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "Build (Native)",
+            "program": "${workspaceFolder}/WinQuake/build-native/Quake",
+            "args": [
+                "-width",
+                "1843",
+                "-height",
+                "865",
+                "+map",
+                "start"
+            ],
+            "cwd": "${workspaceFolder}/WinQuake"
+        },
+        {
+            "name": "Debug (native) - dedicated",
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "Build (Native)",
+            "program": "${workspaceFolder}/WinQuake/build-native/Quake",
+            "args": [
+                "-port",
+                "26001",
+                "-dedicated",
+                "16",
+                "+map",
+                "start"
+            ],
+            "cwd": "${workspaceFolder}/WinQuake"
+        },
+        {
+            "name": "Debug (Linux in Docker)",
+            "type": "lldb",
+            "request": "launch",
+            // "preLaunchTask": "Build and run (Linux in Docker)",
+            // "postDebugTask": "Stop (Linux in Docker)",
+            "program": "${workspaceFolder}/WinQuake/build-docker/Quake",
+            "args": [
+                "-dedicated",
+                "16"
+            ],
+            "cwd": "/srv/WinQuake",
+            "initCommands": [
+                "platform select remote-linux",
+                "platform connect connect://0.0.0.0:11111",
+                "settings set target.inherit-env false",
+                "platform settings -w /srv/WinQuake",
+                "settings set symbols.load-on-demand true",
+                "settings append target.source-map /srv/WinQuake ${workspaceFolder}/WinQuake",
+            ],
+            "env": {
+                "LD_LIBRARY_PATH": "/srv/WinQuake/build-linux"
+            }
+        }
+    ]
+}

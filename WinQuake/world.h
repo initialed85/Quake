@@ -73,3 +73,7 @@ trace_t SV_Move(vec3_t start, vec3_t mins, vec3_t maxs, vec3_t end, int type,
 // shouldn't be considered solid objects
 
 // passedict is explicitly excluded from clipping checks (normally NULL)
+
+// added by initialed85
+qboolean SV_RecursiveHullCheck(hull_t *hull, int num, float p1f, float p2f,
+                               vec3_t p1, vec3_t p2, trace_t *trace);

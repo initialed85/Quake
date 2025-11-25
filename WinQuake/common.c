@@ -766,7 +766,11 @@ void COM_FileBase(char *in, char *out) {
     s--;
 
   for (s2 = s; *s2 && *s2 != '/'; s2--)
-    ;
+    // added by initialed85
+    if ((int)s2 - (int)in == 0) {
+      s2--;
+      break;
+    }
 
   if (s - s2 < 2)
     strcpy(out, "?model?");
@@ -806,7 +810,7 @@ COM_Parse
 Parse a token out of a string
 ==============
 */
-char *COM_Parse(char *data) {
+char *COM_Parse(char *data, qboolean keepcolon) {
   int c;
   int len;
 
@@ -846,7 +850,8 @@ skipwhite:
   }
 
   // parse single characters
-  if (c == '{' || c == '}' || c == ')' || c == '(' || c == '\'' || c == ':') {
+  if (c == '{' || c == '}' || c == ')' || c == '(' || c == '\'' ||
+      (!keepcolon && c == ':')) {
     com_token[len] = c;
     len++;
     com_token[len] = 0;
@@ -859,7 +864,8 @@ skipwhite:
     data++;
     len++;
     c = *data;
-    if (c == '{' || c == '}' || c == ')' || c == '(' || c == '\'' || c == ':')
+    if (c == '{' || c == '}' || c == ')' || c == '(' || c == '\'' ||
+        (!keepcolon && c == ':'))
       break;
   } while (c > 32);
 

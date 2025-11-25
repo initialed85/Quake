@@ -1,0 +1,17 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build (Native)",
+            "command": "./.vscode/build-native.sh",
+        },
+        {
+            "label": "Build and run (Linux in Docker)",
+            "command": "./.vscode/build-and-run-linux-in-docker.sh",
+        },
+        {
+            "label": "Stop (Linux in Docker)",
+            "command": "./.vscode/stop-linux-in-docker.sh",
+        }
+    ]
+}

@@ -454,7 +454,7 @@ void Cmd_TokenizeString(char *text) {
     if (cmd_argc == 1)
       cmd_args = text;
 
-    text = COM_Parse(text);
+    text = COM_Parse(text, true);
     if (!text)
       return;
 

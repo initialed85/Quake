@@ -146,6 +146,7 @@ void CL_EstablishConnection(char *host) {
 
   CL_Disconnect();
 
+  Con_DPrintf("CL_EstablishConnection: connecting to %s...\n", host);
   cls.netcon = NET_Connect(host);
   if (!cls.netcon)
     Host_Error("CL_Connect: connect failed\n");
@@ -262,7 +263,7 @@ void SetPal(int i) {
 	static int old;
 	byte	pal[768];
 	int		c;
-	
+
 	if (i == old)
 		return;
 	old = i;

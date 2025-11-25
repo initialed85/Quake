@@ -766,6 +766,10 @@ Call before beginning any disc IO.
 ================
 */
 void Draw_BeginDisc(void) {
+  // added by initialed85
+  if (draw_disc == NULL) {
+    return;
+  }
 
   D_BeginDirectRect(vid.width - 24, 0, draw_disc->data, 24, 24);
 }

@@ -37,26 +37,34 @@ int net_numdrivers = 2;
 
 #include "net_udp.h"
 
-net_landriver_t net_landrivers[MAX_NET_DRIVERS] = {{"UDP",
-                                                    false,
-                                                    0,
-                                                    UDP_Init,
-                                                    UDP_Shutdown,
-                                                    UDP_Listen,
-                                                    UDP_OpenSocket,
-                                                    UDP_CloseSocket,
-                                                    UDP_Connect,
-                                                    UDP_CheckNewConnections,
-                                                    UDP_Read,
-                                                    UDP_Write,
-                                                    UDP_Broadcast,
-                                                    UDP_AddrToString,
-                                                    UDP_StringToAddr,
-                                                    UDP_GetSocketAddr,
-                                                    UDP_GetNameFromAddr,
-                                                    UDP_GetAddrFromName,
-                                                    UDP_AddrCompare,
-                                                    UDP_GetSocketPort,
-                                                    UDP_SetSocketPort}};
+net_landriver_t net_landrivers[MAX_NET_DRIVERS] = {
+#ifndef __EMSCRIPTEN__
+    {"UDP",
+     false,
+     0,
+     UDP_Init,
+     UDP_Shutdown,
+     UDP_Listen,
+     UDP_OpenSocket,
+     UDP_CloseSocket,
+     UDP_Connect,
+     UDP_CheckNewConnections,
+     UDP_Read,
+     UDP_Write,
+     UDP_Broadcast,
+     UDP_AddrToString,
+     UDP_StringToAddr,
+     UDP_GetSocketAddr,
+     UDP_GetNameFromAddr,
+     UDP_GetAddrFromName,
+     UDP_AddrCompare,
+     UDP_GetSocketPort,
+     UDP_SetSocketPort}
+#endif
+};
 
+#ifndef __EMSCRIPTEN__
 int net_numlandrivers = 1;
+#else
+int net_numlandrivers = 0;
+#endif

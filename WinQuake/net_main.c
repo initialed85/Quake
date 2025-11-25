@@ -224,13 +224,14 @@ static void NET_Port_f(void) {
     return;
   }
 
+  net_hostport = DEFAULTnet_hostport;
+
   n = Q_atoi(Cmd_Argv(1));
   if (n < 1 || n > 65534) {
     Con_Printf("Bad value, must be between 1 and 65534\n");
     return;
   }
 
-  DEFAULTnet_hostport = n;
   net_hostport = n;
 
   if (listening) {
@@ -730,13 +731,14 @@ void NET_Init(void) {
   if (!i)
     i = COM_CheckParm("-ipxport");
 
+  net_hostport = DEFAULTnet_hostport;
+
   if (i) {
     if (i < com_argc - 1)
-      DEFAULTnet_hostport = Q_atoi(com_argv[i + 1]);
+      net_hostport = Q_atoi(com_argv[i + 1]);
     else
       Sys_Error("NET_Init: you must specify a number after -port");
   }
-  net_hostport = DEFAULTnet_hostport;
 
   if (COM_CheckParm("-listen") || cls.state == ca_dedicated)
     listening = true;

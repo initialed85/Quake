@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+    <title>Quake</title>
+    <script language="javascript">
+      const onLoadOrResize = () => {
+        const canvas = document.getElementById("canvas");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      };
+
+      const onLoad = () => {
+        onLoadOrResize();
+      };
+
+      const onResize = () => {
+        onLoadOrResize();
+      };
+    </script>
+  </head>
+  <body onload="javascript: onLoad();" onresize="javascript: onResize();" style="padding: 0px; margin: 0px">
+    <div class="emscripten_border" style="padding: 0px; margin: 0px">
+      <canvas
+        class="emscripten"
+        id="canvas"
+        oncontextmenu="event.preventDefault()"
+        tabindex="-1"
+        style="margin: 0px; padding: 0px"
+      ></canvas>
+    </div>
+    <script>
+      const canvasElement = document.getElementById("canvas");
+
+      canvasElement.addEventListener("webglcontextlost", (e) => {
+        alert("WebGL context lost. You will need to reload the page."), e.preventDefault();
+      });
+
+      const desiredAspectRatio = 320.0 / 200.0;
+
+      const windowW = window.innerWidth; // e.g. 640
+      const windowH = window.innerHeight; // e.g. 400
+
+      const heightFromWidth = windowW / desiredAspectRatio; // e.g. 640 / 1.6 = 400
+      const widthFromHeight = windowH * desiredAspectRatio; // e.g. 400 * 1.6 = 640
+
+      let width, height;
+
+      if (heightFromWidth < windowH) {
+        width = windowW;
+        height = heightFromWidth;
+      } else {
+        width = widthFromHeight;
+        height = windowH;
+      }
+
+      width = Math.round(width);
+      height = Math.round(height);
+
+      const currentAspectRatio = width / height;
+
+      console.log(`width: ${width}, height: ${height}, desiredAspectRatio: ${desiredAspectRatio}, currentAspectRatio: ${currentAspectRatio}`);
+
+      let arguments =
+        Array.from(URL.parse(window.location.href.replaceAll("+", "%2b"))?.searchParams?.keys())[0]?.split(" ") || [];
+
+      if (!arguments.includes("-width")) {
+        arguments.push("-width", width);
+      }
+
+      if (!arguments.includes("-height")) {
+        arguments.push("-height", height);
+      }
+
+      arguments = arguments.map((x) => x.toString());
+
+      console.log(`arguments: ${arguments}`);
+
+      var Module = {
+        print(...e) {
+          console.log(...e);
+        },
+        printErr(...e) {
+          console.warn(...e);
+        },
+        canvas: canvasElement,
+        arguments: arguments,
+      };
+    </script>
+
+    {{{ SCRIPT }}}
+  </body>
+</html>

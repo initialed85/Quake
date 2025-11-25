@@ -600,7 +600,7 @@ void Host_Loadgame_f(void) {
       Sys_Error("Loadgame buffer overflow");
     str[i] = 0;
     start = str;
-    start = COM_Parse(str);
+    start = COM_Parse(str, false);
     if (!com_token[0])
       break; // end of file
     if (strcmp(com_token, "{"))
@@ -751,7 +751,7 @@ int LoadGamestate(char *level, char *startspot) {
       Sys_Error("Loadgame buffer overflow");
     str[i] = 0;
     start = str;
-    start = COM_Parse(str);
+    start = COM_Parse(str, false);
     if (!com_token[0])
       break; // end of file
     if (strcmp(com_token, "{"))
@@ -847,7 +847,7 @@ void Host_Name_f(void) {
     if (Q_strcmp(host_client->name, newName) != 0)
       Con_Printf("%s renamed to %s\n", host_client->name, newName);
   Q_strcpy(host_client->name, newName);
-  host_client->edict->v.netname = host_client->name - pr_strings;
+  host_client->edict->v.netname = ED_NewString(host_client->name) - pr_strings;
 
   // send notification to all clients
 
@@ -1169,7 +1169,7 @@ void Host_Spawn_f(void) {
     memset(&ent->v, 0, progs->entityfields * 4);
     ent->v.colormap = NUM_FOR_EDICT(ent);
     ent->v.team = (host_client->colors & 15) + 1;
-    ent->v.netname = host_client->name - pr_strings;
+    ent->v.netname = ED_NewString(host_client->name) - pr_strings;
 
     // copy spawn parms out of the client_t
 
@@ -1324,7 +1324,7 @@ void Host_Kick_f(void) {
       return;
 
     if (Cmd_Argc() > 2) {
-      message = COM_Parse(Cmd_Args());
+      message = COM_Parse(Cmd_Args(), false);
       if (byNumber) {
         message++;              // skip the #
         while (*message == ' ') // skip white space

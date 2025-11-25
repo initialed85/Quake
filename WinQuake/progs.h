@@ -51,6 +51,7 @@ typedef struct edict_s {
 extern dprograms_t *progs;
 extern dfunction_t *pr_functions;
 extern char *pr_strings;
+extern int pr_stringssize;
 extern ddef_t *pr_globaldefs;
 extern ddef_t *pr_fielddefs;
 extern dstatement_t *pr_statements;

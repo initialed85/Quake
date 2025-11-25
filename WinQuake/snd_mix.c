@@ -41,6 +41,10 @@ void Snd_WriteLinearBlastStereo16(void) {
   int val;
 
   for (i = 0; i < snd_linear_count; i += 2) {
+    // added by initialed85
+    if (snd_out == NULL)
+      continue;
+
     val = (snd_p[i] * snd_vol) >> 8;
     if (val > 0x7fff)
       snd_out[i] = 0x7fff;
