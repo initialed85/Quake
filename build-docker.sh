@@ -21,9 +21,9 @@ fi
 
 desired_arch="${ARCH:-${detected_arch}}"
 
-docker build --platform="linux/${desired_arch}" --progress=plain --build-arg "DEBUG=${DEBUG:-0}" -t initialed85/quake:latest -f ./Dockerfile .
+docker build --platform="linux/${desired_arch}" --progress=plain --build-arg "DEBUG=${DEBUG:-0}" -t "initialed85/quake-build:latest" -f ./Dockerfile .
 
-docker run --platform="linux/${desired_arch}" -d --rm --entrypoint bash --name quake initialed85/quake:latest -c 'tail -F /dev/null'
+docker run --platform="linux/${desired_arch}" -d --rm --entrypoint bash --name quake "initialed85/quake-build:latest" -c 'tail -F /dev/null'
 
 rm -fr ./WinQuake/build-docker >/dev/null 2>&1 || true
 

@@ -1,0 +1,12 @@
+FROM ubuntu:24.04
+
+COPY dist/quake /srv/quake
+
+WORKDIR /srv/quake
+
+RUN bash -c 'cp -frv *.so* /usr/lib/'
+
+RUN ldconfig
+
+ENTRYPOINT ["/srv/quake/Quake"]
+CMD ["-dedicated", "16"]
