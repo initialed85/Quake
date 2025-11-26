@@ -33,3 +33,11 @@ docker build --platform="linux/${desired_arch}" -t "${image}" -f ./Dockerfile.di
 if [[ "${PUSH}" == "1" ]]; then
 	docker image push "${image}"
 fi
+
+echo -e "\ndone; run with something like this:\n"
+
+echo "docker run --rm -it -p 26000:26000/udp -p 26001:26001/udp ${image} -dedicated 16 -port 26001"
+
+echo -e "\nand then connect to it with something like this (assuming same platform):\n"
+
+echo "./dist/Quake +connect 127.0.0.1:26001"
