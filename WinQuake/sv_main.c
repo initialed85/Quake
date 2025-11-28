@@ -308,8 +308,11 @@ void SV_CheckForNewClients(void) {
     // init a new client structure
     //
     for (i = 0; i < svs.maxclients; i++)
-      if (!svs.clients[i].active)
+      if (!svs.clients[i].active) {
+        Sys_Printf("allocating new client to slot %d\n", i);
         break;
+      }
+
     if (i == svs.maxclients)
       Sys_Error("Host_CheckForNewClients: no free clients");
 

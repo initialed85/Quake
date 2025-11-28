@@ -224,7 +224,7 @@ static void NET_Port_f(void) {
     return;
   }
 
-  net_hostport = DEFAULTnet_hostport;
+  net_hostport = DEFAULTnet_hostport + 1;
 
   n = Q_atoi(Cmd_Argv(1));
   if (n < 1 || n > 65534) {
@@ -731,7 +731,7 @@ void NET_Init(void) {
   if (!i)
     i = COM_CheckParm("-ipxport");
 
-  net_hostport = DEFAULTnet_hostport;
+  net_hostport = DEFAULTnet_hostport + 1;
 
   if (i) {
     if (i < com_argc - 1)

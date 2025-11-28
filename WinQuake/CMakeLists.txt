@@ -99,21 +99,24 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 else()
   set(DRY_CFLAGS ${DRY_CFLAGS}
     "-O3"
+    # NOTE: don't ever enable this- the QuakeC VM depends on floats
+    # and the funky float stuff this does odd random stack overflows
+    # inside the VM
+    # "-ffast-math"
     )
 
   set(DRY_LDFLAGS ${DRY_LDFLAGS}
     "-O3"
+    "-flto"
   )
 endif()
 
 if (EMSCRIPTEN)
   if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    # switch on some sanitizers for debug builds
     set(DRY_CFLAGS ${DRY_CFLAGS}
       # "-fsanitize=address,undefined,null"
     )
 
-    # switch on some sanitizers and others for debug builds
     set(DRY_LDFLAGS ${DRY_LDFLAGS}
       # "-fsanitize=address,undefined,null"
       "-sSTACK_OVERFLOW_CHECK=2"
@@ -123,12 +126,10 @@ if (EMSCRIPTEN)
   endif()
 else()
   if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    # switch on some sanitizers for debug builds
     set(DRY_CFLAGS ${DRY_CFLAGS}
         # "-fsanitize=address,undefined,null,pointer-compare,pointer-subtract"
     )
 
-    # switch on some sanitizers for debug builds
     set(DRY_LDFLAGS ${DRY_LDFLAGS}
       # "-fsanitize=address,undefined,null,pointer-compare,pointer-subtract"
     )

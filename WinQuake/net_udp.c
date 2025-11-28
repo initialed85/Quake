@@ -53,8 +53,10 @@ extern int close(int);
 extern cvar_t hostname;
 
 static int net_acceptsocket = -1; // socket for fielding new connections
-static int net_controlsocket;
-static int net_broadcastsocket = 0;
+static int net_controlsocket; // socket for discovering other servers, before
+                              // it's been made into a broadcast socket
+static int net_broadcastsocket =
+    0; // net_controlsocket, but after it's been made into a broadcast socket
 static struct qsockaddr broadcastaddr;
 
 static unsigned long myAddr;
@@ -72,6 +74,8 @@ int UDP_Init(void) {
   if (COM_CheckParm("-noudp"))
     return -1;
 
+  Con_Printf("UDP Initializing...\n");
+
   // determine my name & address
   gethostname(buff, MAXHOSTNAMELEN);
   local = gethostbyname(buff);
@@ -87,6 +91,8 @@ int UDP_Init(void) {
   // for servers; I figure we can leave this behaviour as-is because broadcast
   // only works on your layer 2 segment (and so the NAT issues we're trying to
   // work around don't apply)
+  Con_Printf("UDP Opening control socket on port %d for server discovery...\n",
+             0);
   if ((net_controlsocket = UDP_OpenSocket(0)) == -1)
     Sys_Error("UDP_Init: Unable to open control socket\n");
 
@@ -120,8 +126,19 @@ void UDP_Listen(qboolean state) {
   if (state) {
     if (net_acceptsocket != -1)
       return;
+
+    Con_Printf("UDP Opening socket on port %d to run a server...\n",
+               net_hostport);
     if ((net_acceptsocket = UDP_OpenSocket(net_hostport)) == -1)
       Sys_Error("UDP_Listen: Unable to open accept socket\n");
+
+    Con_Printf("UDP Re-opening control socket on port %d to answer server "
+               "discovery...\n",
+               DEFAULTnet_hostport);
+    UDP_CloseSocket(net_controlsocket);
+    if ((net_controlsocket = UDP_OpenSocket(DEFAULTnet_hostport)) == -1)
+      Sys_Error("UDP_Init: Unable to open control socket\n");
+
     return;
   }
 
@@ -134,23 +151,33 @@ void UDP_Listen(qboolean state) {
 
 //=============================================================================
 
+void UDP_AddrToString2(struct qsockaddr *addr, char buffer[22]);
+
 int UDP_OpenSocket(int port) {
   int newsocket;
   struct sockaddr_in address;
   qboolean _true = true;
   int i = 1;
 
-  if ((newsocket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
+  if ((newsocket = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
+    Con_Printf("UDP_OpenSocket: failed at socket()\n");
     return -1;
+  }
 
-  if (ioctl(newsocket, FIONBIO, (char *)&_true) == -1)
+  if (ioctl(newsocket, FIONBIO, (char *)&_true) == -1) {
+    Con_Printf("UDP_OpenSocket: failed at ioctl()\n");
     goto ErrorReturn;
+  }
 
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = INADDR_ANY;
   address.sin_port = htons(port);
-  if (bind(newsocket, (void *)&address, sizeof(address)) == -1)
+  if (bind(newsocket, (void *)&address, sizeof(address)) == -1) {
+    char addr[22];
+    UDP_AddrToString2((struct qsockaddr *)&address, addr);
+    Con_Printf("UDP_OpenSocket: failed at bind(%s)\n", addr);
     goto ErrorReturn;
+  }
 
   struct qsockaddr boundaddr;
 
@@ -172,6 +199,20 @@ ErrorReturn:
 int UDP_CloseSocket(int socket) {
   if (socket == net_broadcastsocket)
     net_broadcastsocket = 0;
+
+  if (socket == net_acceptsocket) {
+    Con_Printf(
+        "UDP Re-opening control socket on port %d for server discovery...\n",
+        0);
+
+    close(net_controlsocket);
+
+    net_controlsocket = 0;
+
+    if ((net_controlsocket = UDP_OpenSocket(0)) == -1)
+      Sys_Error("UDP_Init: Unable to open control socket\n");
+  }
+
   return close(socket);
 }
 
@@ -243,9 +284,24 @@ int UDP_CheckNewConnections(void) {
     return -1;
 
   if (ioctl(net_acceptsocket, FIONREAD, &available) == -1)
-    Sys_Error("UDP: ioctlsocket (FIONREAD) failed\n");
+    Sys_Error("UDP: ioctlsocket (FIONREAD) failed for net_acceptsocket\n");
   if (available)
     return net_acceptsocket;
+  return -1;
+}
+
+//=============================================================================
+
+int UDP_CheckNewConnectionsDiscoveryOnly(void) {
+  unsigned long available;
+
+  if (net_controlsocket == -1)
+    return -1;
+
+  if (ioctl(net_controlsocket, FIONREAD, &available) == -1)
+    Sys_Error("UDP: ioctlsocket (FIONREAD) failed for net_controlsocket\n");
+  if (available)
+    return net_controlsocket;
   return -1;
 }
 
@@ -361,12 +417,12 @@ int UDP_StringToAddr(char *string, struct qsockaddr *addr) {
 
 int UDP_GetSocketAddr(int socket, struct qsockaddr *addr) {
   int addrlen = sizeof(struct qsockaddr);
-  unsigned int a;
 
   Q_memset(addr, 0, sizeof(struct qsockaddr));
   getsockname(socket, (struct sockaddr *)addr, &addrlen);
 
   // commented by initialed85
+  // unsigned int a;
   // a = ((struct sockaddr_in *)addr)->sin_addr.s_addr;
   // if (a == 0 || a == inet_addr("127.0.0.1"))
   //   ((struct sockaddr_in *)addr)->sin_addr.s_addr = myAddr;
@@ -435,6 +491,27 @@ int UDP_AddrCompare(struct qsockaddr *addr1, struct qsockaddr *addr2) {
 
   UDP_AddrToString2(addr1, a);
   UDP_AddrToString2(addr2, b);
+
+  char *colon_a = strchr(a, ':');
+  char *colon_b = strchr(b, ':');
+
+  if (colon_a != NULL && colon_b != NULL) {
+    *colon_a = '\0';
+    char *host_a = a;
+    char *port_a = colon_a + 1;
+    if (strcmp(host_a, "127.0.0.1") == 0) {
+      host_a = "0.0.0.0";
+    }
+
+    *colon_b = '\0';
+    char *host_b = b;
+    char *port_b = colon_b + 1;
+    if (strcmp(host_b, "127.0.0.1") == 0) {
+      host_b = "0.0.0.0";
+    }
+
+    return strcmp(host_a, host_b) == 0 && strcmp(port_a, port_b) == 0 ? 0 : -1;
+  }
 
   return strcmp(a, b) == 0 ? 0 : -1;
 }

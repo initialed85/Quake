@@ -1,8 +1,5 @@
 FROM ubuntu:24.04
 
-ARG DEBUG=0
-ENV DEBUG=${DEBUG:-0}
-
 RUN apt-get update && apt-get install -y clang-20 cmake git lldb valgrind
 
 RUN update-alternatives --install /usr/bin/cc cc /usr/bin/clang-20 100
@@ -12,6 +9,9 @@ WORKDIR /srv/
 
 COPY ./WinQuake /srv/WinQuake
 COPY ./build-native.sh /srv/build-native.sh
+
+ARG DEBUG=0
+ENV DEBUG=${DEBUG:-0}
 
 RUN --mount=type=cache,target=/srv/WinQuake/build-native ./build-native.sh
 

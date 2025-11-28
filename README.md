@@ -43,6 +43,7 @@ This repo contains my attempt to modernise the Quake 1 source code.
     - `./Quake -port 26001 +connect 127.0.0.1:26000`
     - `./Quake -port 26002  +connect 127.0.0.1:26000`
 - [TODO] Implement WebSocket multiplayer for the WASM build (via a proxy / gateway server)
+- [TODO] Fix crash encountered with `-width 2560 -height 1440 -fullscreen` and maybe higher resolutions
 
 ## Usage
 

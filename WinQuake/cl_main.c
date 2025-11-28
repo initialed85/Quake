@@ -146,11 +146,11 @@ void CL_EstablishConnection(char *host) {
 
   CL_Disconnect();
 
-  Con_DPrintf("CL_EstablishConnection: connecting to %s...\n", host);
+  Con_Printf("CL_EstablishConnection: connecting to %s...\n", host);
   cls.netcon = NET_Connect(host);
   if (!cls.netcon)
-    Host_Error("CL_Connect: connect failed\n");
-  Con_DPrintf("CL_EstablishConnection: connected to %s\n", host);
+    Host_Error("CL_Connect: connect failed (cls.netcon == %d)\n", cls.netcon);
+  Con_Printf("CL_EstablishConnection: connected to %s\n", host);
 
   cls.demonum = -1; // not in the demo loop now
   cls.state = ca_connected;

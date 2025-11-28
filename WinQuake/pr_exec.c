@@ -102,28 +102,28 @@ void PR_PrintStatement(dstatement_t *s) {
   int i;
 
   if ((unsigned)s->op < sizeof(pr_opnames) / sizeof(pr_opnames[0])) {
-    Con_Printf("%s ", pr_opnames[s->op]);
+    printf("%s ", pr_opnames[s->op]);
     i = strlen(pr_opnames[s->op]);
     for (; i < 10; i++)
-      Con_Printf(" ");
+      printf(" ");
   }
 
   if (s->op == OP_IF || s->op == OP_IFNOT)
-    Con_Printf("%sbranch %i", PR_GlobalString(s->a), s->b);
+    printf("%sbranch %i", PR_GlobalString(s->a), s->b);
   else if (s->op == OP_GOTO) {
-    Con_Printf("branch %i", s->a);
+    printf("branch %i", s->a);
   } else if ((unsigned)(s->op - OP_STORE_F) < 6) {
-    Con_Printf("%s", PR_GlobalString(s->a));
-    Con_Printf("%s", PR_GlobalStringNoContents(s->b));
+    printf("%s", PR_GlobalString(s->a));
+    printf("%s", PR_GlobalStringNoContents(s->b));
   } else {
     if (s->a)
-      Con_Printf("%s", PR_GlobalString(s->a));
+      printf("%s", PR_GlobalString(s->a));
     if (s->b)
-      Con_Printf("%s", PR_GlobalString(s->b));
+      printf("%s", PR_GlobalString(s->b));
     if (s->c)
-      Con_Printf("%s", PR_GlobalStringNoContents(s->c));
+      printf("%s", PR_GlobalStringNoContents(s->c));
   }
-  Con_Printf("\n");
+  printf("\n");
 }
 
 /*

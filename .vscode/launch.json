@@ -8,12 +8,13 @@
             "preLaunchTask": "Build (Native)",
             "program": "${workspaceFolder}/WinQuake/build-native/Quake",
             "args": [
+                "-port",
+                "26998",
                 "-width",
-                "1843",
+                "1280",
                 "-height",
-                "865",
-                "+map",
-                "start"
+                "800",
+                "-fullscreen"
             ],
             "cwd": "${workspaceFolder}/WinQuake"
         },
@@ -25,7 +26,7 @@
             "program": "${workspaceFolder}/WinQuake/build-native/Quake",
             "args": [
                 "-port",
-                "26001",
+                "26999",
                 "-dedicated",
                 "16",
                 "+map",

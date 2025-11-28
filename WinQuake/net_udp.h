@@ -26,6 +26,7 @@ int UDP_OpenSocket(int port);
 int UDP_CloseSocket(int socket);
 int UDP_Connect(int socket, struct qsockaddr *addr);
 int UDP_CheckNewConnections(void);
+int UDP_CheckNewConnectionsDiscoveryOnly(void);
 int UDP_Read(int socket, byte *buf, int len, struct qsockaddr *addr);
 int UDP_Write(int socket, byte *buf, int len, struct qsockaddr *addr);
 int UDP_Broadcast(int socket, byte *buf, int len);

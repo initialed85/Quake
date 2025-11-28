@@ -49,6 +49,7 @@ net_landriver_t net_landrivers[MAX_NET_DRIVERS] = {
      UDP_CloseSocket,
      UDP_Connect,
      UDP_CheckNewConnections,
+     UDP_CheckNewConnectionsDiscoveryOnly,
      UDP_Read,
      UDP_Write,
      UDP_Broadcast,
