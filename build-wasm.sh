@@ -19,17 +19,23 @@ fi
 
 pushd WinQuake >/dev/null
 
+if command -v fteqcc >/dev/null 2>&1; then
+	pushd id1/progs/src >/dev/null
+	fteqcc
+	popd >/dev/null
+fi
+
 # shellcheck disable=SC2065
 if ! test -e emsdk >/dev/null 2>&1; then
     git clone https://github.com/emscripten-core/emsdk.git
     cd emsdk
-    git checkout tags/4.0.9
-    ./emsdk install 4.0.9
+    git checkout tags/4.0.20
+    ./emsdk install 4.0.20
     cd ..
 fi
 
 cd emsdk
-./emsdk activate 4.0.9
+./emsdk activate 4.0.20
 # shellcheck disable=SC1091
 source ./emsdk_env.sh
 cd ..

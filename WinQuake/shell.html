@@ -37,6 +37,10 @@
         alert("WebGL context lost. You will need to reload the page."), e.preventDefault();
       });
 
+      //
+      // work out which resolution to ask for
+      //
+
       const desiredAspectRatio = 320.0 / 200.0;
 
       const windowW = window.innerWidth; // e.g. 640
@@ -60,10 +64,54 @@
 
       const currentAspectRatio = width / height;
 
-      console.log(`width: ${width}, height: ${height}, desiredAspectRatio: ${desiredAspectRatio}, currentAspectRatio: ${currentAspectRatio}`);
+      console.log(
+        `width: ${width}, height: ${height}, desiredAspectRatio: ${desiredAspectRatio}, currentAspectRatio: ${currentAspectRatio}`
+      );
 
-      let arguments =
-        Array.from(URL.parse(window.location.href.replaceAll("+", "%2b"))?.searchParams?.keys())[0]?.split(" ") || [];
+      //
+      // set / recall the clientId (fake IP address)
+      //
+
+      let clientId = sessionStorage.getItem("clientId");
+
+      while (
+        !clientId ||
+        typeof clientId !== "string" ||
+        clientId.split(".").length !== 4 ||
+        clientId === "255.255.255.255" ||
+        clientId.split(".")[0] === "0" ||
+        clientId.split(".")[0] === "255"
+      ) {
+        clientId = crypto.getRandomValues(new Uint8Array(4)).join(".");
+      }
+
+      sessionStorage.setItem("clientId", clientId);
+
+      console.log(`set clientId: ${clientId} in sessionStorage`);
+
+      //
+      // set / recall the player colours
+      //
+
+      let color = sessionStorage.getItem("color");
+
+      if (!color || typeof color !== "string" || color.split(" ").length !== 2) {
+        while (!color) {
+          color = `${Math.floor(Math.random() * 16)} ${Math.floor(Math.random() * 16)}`;
+        }
+
+        sessionStorage.setItem("color", color);
+
+        console.log(`set color: ${color} in sessionStorage`);
+      } else {
+        console.log(`remembered color: ${color} from sessionStorage`);
+      }
+      let arguments = [];
+
+      URL.parse(window.location.href.replaceAll("+", "%2b"))?.searchParams?.forEach((v, k) => {
+        arguments.push(k);
+        arguments.push(v);
+      });
 
       if (!arguments.includes("-width")) {
         arguments.push("-width", width);
@@ -72,6 +120,18 @@
       if (!arguments.includes("-height")) {
         arguments.push("-height", height);
       }
+
+      arguments = arguments.filter((x) => x !== "clientId");
+      arguments.push("-clientid", clientId);
+
+      arguments = arguments.filter((x) => x !== "hostname");
+      arguments.push("+hostname", "ws" + clientId.replaceAll(".", ""));
+
+      arguments = arguments.filter((x) => x !== "name");
+      arguments.push("+name", "ws" + clientId.replaceAll(".", ""));
+
+      arguments = arguments.filter((x) => x !== "color");
+      arguments.push("+color", color);
 
       arguments = arguments.map((x) => x.toString());
 

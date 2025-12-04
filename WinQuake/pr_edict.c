@@ -923,7 +923,9 @@ void PR_LoadProgs(void) {
 
   CRC_Init(&pr_crc);
 
-  progs = (dprograms_t *)COM_LoadHunkFile("progs.dat");
+  progs = (dprograms_t *)COM_LoadFile("progs/progs.dat", 1);
+  if (!progs)
+    progs = (dprograms_t *)COM_LoadHunkFile("progs.dat");
   if (!progs)
     Sys_Error("PR_LoadProgs: couldn't load progs.dat");
   Con_DPrintf("Programs occupy %iK.\n", com_filesize / 1024);

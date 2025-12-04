@@ -57,6 +57,10 @@ unsigned long inet_addr(const char *cp);
 #include "quakedef.h"
 #include "net_dgrm.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 // these two macros are to make the code more readable
 #define sfunc net_landrivers[sock->landriver]
 #define dfunc net_landrivers[net_landriverlevel]
@@ -794,17 +798,12 @@ static qsocket_t *_Datagram_CheckNewConnections(void) {
 
     net_message.cursize = len;
 
-    if (i == 0) {
-      Con_Printf(
-          "_Datagram_CheckNewConnections: handling potential new connection "
-          "from %s on control socket\n",
-          dfunc.AddrToString(&clientaddr));
-    } else {
-      Con_Printf(
-          "_Datagram_CheckNewConnections: handling potential new connection "
-          "from %s on accept socket\n",
-          dfunc.AddrToString(&clientaddr));
+    printf("_Datagram_CheckNewConnections : i=%d, sock=%d, len=%d; data=[ ", i,
+           acceptsock, len);
+    for (int j = 0; j < len; j++) {
+      printf("%x ", net_message.data[j]);
     }
+    printf("]\n");
 
     MSG_BeginReading();
     control = BigLong(*((int *)net_message.data));
@@ -1254,6 +1253,10 @@ static qsocket_t *_Datagram_Connect(char *host) {
   start_time = net_time;
 
   for (reps = 0; reps < 3; reps++) {
+#ifdef __EMSCRIPTEN__
+    emscripten_sleep(1);
+#endif
+
     SZ_Clear(&net_message);
     // save space for the header, filled in later
     MSG_WriteLong(&net_message, 0);
@@ -1264,7 +1267,12 @@ static qsocket_t *_Datagram_Connect(char *host) {
         BigLong(NETFLAG_CTL | (net_message.cursize & NETFLAG_LENGTH_MASK));
     dfunc.Write(newsock, net_message.data, net_message.cursize, &sendaddr);
     SZ_Clear(&net_message);
+
     do {
+#ifdef __EMSCRIPTEN__
+      emscripten_sleep(1);
+#endif
+
       ret =
           dfunc.Read(newsock, net_message.data, net_message.maxsize, &readaddr);
       // if we got something, validate it

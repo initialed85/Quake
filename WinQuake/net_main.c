@@ -851,8 +851,14 @@ void NET_Poll(void) {
   for (pp = pollProcedureList; pp; pp = pp->next) {
     if (pp->nextTime > net_time)
       break;
+
     pollProcedureList = pp->next;
-    pp->procedure(pp->arg);
+
+    if (pp->arg != NULL)
+      pp->procedure(pp->arg);
+    else {
+      pp->procedure();
+    }
   }
 }
 

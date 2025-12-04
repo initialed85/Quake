@@ -19,12 +19,11 @@ fi
 
 pushd WinQuake >/dev/null
 
-# if command -v fteqcc >/dev/null 2>&1; then
-# 	pushd id1/progs/src >/dev/null
-# 	fteqcc
-# 	cp ../progs.dat ../../
-# 	popd >/dev/null
-# fi
+if command -v fteqcc >/dev/null 2>&1; then
+	pushd id1/progs/src >/dev/null
+	fteqcc
+	popd >/dev/null
+fi
 
 if [[ "${CLEAN}" == "1" ]]; then
 	rm -fr build-native 2>&1 || true

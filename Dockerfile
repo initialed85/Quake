@@ -13,9 +13,9 @@ COPY ./build-native.sh /srv/build-native.sh
 ARG DEBUG=0
 ENV DEBUG=${DEBUG:-0}
 
-RUN --mount=type=cache,target=/srv/WinQuake/build-native ./build-native.sh
+RUN ./build-native.sh
 
-RUN --mount=type=cache,target=/srv/WinQuake/build-native cp -frv /srv/WinQuake/build-native /srv/WinQuake/build-linux
+RUN cp -frv /srv/WinQuake/build-native /srv/WinQuake/build-linux
 
 ENV LD_LIBRARY_PATH=/srv/WinQuake/build-linux
 

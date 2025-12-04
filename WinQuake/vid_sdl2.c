@@ -204,8 +204,8 @@ void VID_Init(unsigned char *palette) {
   // Set up Quake's video state
   //
 
-  vid_buffer = malloc((screen_width * screen_height) * sizeof(byte));
-  zbuffer = malloc((screen_width * screen_height) * sizeof(short));
+  vid_buffer = calloc(screen_width * screen_height, sizeof(byte));
+  zbuffer = calloc(screen_width * screen_height, sizeof(short));
 
   vid.width = vid.conwidth = screen_width;
   vid.height = vid.conheight = screen_height;

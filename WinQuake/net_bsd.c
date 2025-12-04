@@ -37,6 +37,10 @@ int net_numdrivers = 2;
 
 #include "net_udp.h"
 
+// #ifdef __EMSCRIPTEN__
+// #include "net_ws.h"
+// #endif
+
 net_landriver_t net_landrivers[MAX_NET_DRIVERS] = {
 #ifndef __EMSCRIPTEN__
     {"UDP",
@@ -60,12 +64,36 @@ net_landriver_t net_landrivers[MAX_NET_DRIVERS] = {
      UDP_GetAddrFromName,
      UDP_AddrCompare,
      UDP_GetSocketPort,
-     UDP_SetSocketPort}
+     UDP_SetSocketPort},
+#else
+    // {"WS",
+    //  false,
+    //  0,
+    //  WS_Init,
+    //  WS_Shutdown,
+    //  WS_Listen,
+    //  WS_OpenSocket,
+    //  WS_CloseSocket,
+    //  WS_Connect,
+    //  WS_CheckNewConnections,
+    //  WS_CheckNewConnectionsDiscoveryOnly,
+    //  WS_Read,
+    //  WS_Write,
+    //  WS_Broadcast,
+    //  WS_AddrToString,
+    //  WS_StringToAddr,
+    //  WS_GetSocketAddr,
+    //  WS_GetNameFromAddr,
+    //  WS_GetAddrFromName,
+    //  WS_AddrCompare,
+    //  WS_GetSocketPort,
+    //  WS_SetSocketPort},
 #endif
 };
 
 #ifndef __EMSCRIPTEN__
 int net_numlandrivers = 1;
 #else
+// int net_numlandrivers = 1;
 int net_numlandrivers = 0;
 #endif

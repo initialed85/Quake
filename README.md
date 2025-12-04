@@ -103,3 +103,10 @@ NOTE: You'll need to place your demo / purchased Quake resources at `WinQuake/id
 ## Original documentation
 
 See [original README](./readme.txt) and [original LICENCE](./gnu.txt)
+
+## Dev scratch notes
+
+```shell
+# for deploying Docker-built Linux Quake server to Kubernetes
+ARCH=amd64 ./build-docker.sh && IMAGE=kube-registry:5000/quake:latest PUSH=1 ./package-docker.sh
+```

@@ -70,6 +70,8 @@ set(DRY_CFLAGS
     "-Wno-absolute-value"
     "-Wno-int-conversion"
     "-Wno-int-to-void-pointer-cast"
+    "-Wno-cast-function-type-mismatch"
+    "-Wno-semicolon-before-method-body"
 )
 
 set(DRY_LDFLAGS
@@ -83,12 +85,16 @@ if (EMSCRIPTEN)
   set(DRY_LDFLAGS ${DRY_LDFLAGS}
     "-sUSE_SDL=2" # link the emscripten-provided SDL2
     "-sINITIAL_MEMORY=1024MB" # bit of a thumb-suck
-    "-sTOTAL_STACK=128MB" # bit of a thumb-suck
+    "-sTOTAL_STACK=256MB" # bit of a thumb-suck
+    "-sSTACK_SIZE=32MB"
     "-lidbfs.js"
     "-lwebsocket.js"
     "--shell-file=../shell.html"
     "-lopenal"
     "-sEXIT_RUNTIME"
+    "-sASYNCIFY=1"
+    "-sALLOW_BLOCKING_ON_MAIN_THREAD=1"
+    "-Wno-limited-postlink-optimizations"
   )
 endif()
 
@@ -99,9 +105,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 else()
   set(DRY_CFLAGS ${DRY_CFLAGS}
     "-O3"
-    # NOTE: don't ever enable this- the QuakeC VM depends on floats
-    # and the funky float stuff this does odd random stack overflows
-    # inside the VM
+    # note: don't enable this- we've been here buddy; it causes stack overflows with the QC VM (because it uses floats carefully)
     # "-ffast-math"
     )
 
@@ -115,13 +119,16 @@ if (EMSCRIPTEN)
   if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(DRY_CFLAGS ${DRY_CFLAGS}
       # "-fsanitize=address,undefined,null"
+      "-gsource-map"
     )
 
     set(DRY_LDFLAGS ${DRY_LDFLAGS}
       # "-fsanitize=address,undefined,null"
+      "-gsource-map"
+      "--source-map-base=./"
       "-sSTACK_OVERFLOW_CHECK=2"
       "-sCHECK_NULL_WRITES=1"
-      "-sASSERTIONS=1"
+      "-sASSERTIONS=2"
     )
   endif()
 else()
@@ -137,7 +144,8 @@ else()
 endif()
 
 string(JOIN " " DRY_CFLAGS_STR ${DRY_CFLAGS})
-set(CMAKE_C_LINKER_FLAGS ${DRY_CFLAGS_STR})
+set(CMAKE_C_FLAGS ${DRY_CFLAGS_STR})
+set(CMAKE_EXE_LINKER_FLAGS ${DRY_CFLAGS_STR})
 
 string(JOIN " " DRY_LDFLAGS_STR ${DRY_LDFLAGS})
 set(CMAKE_EXE_LINKER_FLAGS ${DRY_LDFLAGS_STR})
@@ -177,8 +185,7 @@ string(JOIN " " DRY_LIBS_STR ${DRY_LIBS})
 # the SDL2 platform (platform = sys / vid / snd)
 #
 
-add_library(
-    QuakeLib
+set(QUAKE_SOURCES
     adivtab.h
     anorm_dots.h
     anorms.h
@@ -309,6 +316,17 @@ add_library(
     zone.h
 )
 
+if(EMSCRIPTEN)
+    list(APPEND QUAKE_SOURCES
+        # websockets/websockets.h
+        # websockets/websockets.c
+        net_ws.c
+        net_ws.h
+    )
+endif()
+
+add_library(QuakeLib ${QUAKE_SOURCES})
+
 set_target_properties(QuakeLib PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 if (NOT EMSCRIPTEN)
   target_link_libraries(QuakeLib PUBLIC m SDL2::SDL2)
@@ -320,11 +338,31 @@ target_compile_options(QuakeLib PUBLIC ${DRY_CFLAGS})
 target_link_options(QuakeLib PUBLIC)
 
 #
+# Tests
+#
+
+# if (EMSCRIPTEN)
+#   add_executable(tests
+#     websockets/test_websockets.c
+#     websockets/websockets.h
+#     websockets/websockets.c
+#   )
+
+#   # need -sASYNCIFY=1 so we can write synchronous-looking code in our tests and use emscripten_sleep
+#   # need -sNO_EXIT_RUNTIME=1 just to avoid (harmless) explosions if events happen after we finish the tests
+#   set_target_properties(tests PROPERTIES
+#     LINK_FLAGS "-sNODERAWFS=1 -sASYNCIFY=1 -sNO_EXIT_RUNTIME=1 -Wno-limited-postlink-optimizations -gsource-map --source-map-base ./"
+#   )
+# endif()
+
+#
 # Quake - the main executable; this is mostly just a main() function that was
 # extracted from sys_sdl2.c (which is largely copypasta from sys_linux.c)
 #
 
-add_executable(Quake main.c)
+add_executable(Quake
+  main.c
+)
 
 set_target_properties(Quake PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 if (NOT EMSCRIPTEN)
