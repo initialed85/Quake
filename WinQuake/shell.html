@@ -69,6 +69,16 @@
       );
 
       //
+      // work out the WebSocket URL (should be the immediate parent of this URL + /ws)
+      //
+
+      const urlParts = window.location.href.split("/").filter((x) => !!x.trim());
+      const _ = urlParts.pop();
+      urlParts.push("ws");
+      const webSocketUrl = urlParts.join("/");
+      console.log(`webSocketUrl: ${webSocketUrl}`);
+
+      //
       // set / recall the clientId (fake IP address)
       //
 
@@ -106,6 +116,11 @@
       } else {
         console.log(`remembered color: ${color} from sessionStorage`);
       }
+
+      //
+      // build up the commandline arguments
+      //
+
       let arguments = [];
 
       URL.parse(window.location.href.replaceAll("+", "%2b"))?.searchParams?.forEach((v, k) => {

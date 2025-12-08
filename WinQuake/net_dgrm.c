@@ -1232,8 +1232,6 @@ static qsocket_t *_Datagram_Connect(char *host) {
   // on our firewalls in order to play
   newsock = dfunc.OpenSocket(net_hostport);
   if (newsock == -1) {
-    Con_Printf("_Datagram_Connect: defunc.OpenSocket(%d) returned %d",
-               net_hostport, newsock);
     return NULL;
   }
 

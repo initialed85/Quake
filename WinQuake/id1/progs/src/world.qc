@@ -189,6 +189,8 @@ World Types:
 //=======================
 void() worldspawn =
 {
+	BotInit();  // FrikBot
+
 	lastspawn = world;
 	InitBodyQue();
 
@@ -355,6 +357,8 @@ void() worldspawn =
 
 void() StartFrame =
 {
+	BotFrame(); // FrikBot
+
 	teamplay = cvar("teamplay");
 	skill = cvar("skill");
 	framecount = framecount + 1;
@@ -405,5 +409,3 @@ void(entity ent) CopyToBodyQue =
 	setsize(bodyque_head, ent.mins, ent.maxs);
 	bodyque_head = bodyque_head.owner;
 };
-
-

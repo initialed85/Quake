@@ -92,8 +92,8 @@ if (EMSCRIPTEN)
     "--shell-file=../shell.html"
     "-lopenal"
     "-sEXIT_RUNTIME"
-    "-sASYNCIFY=1"
-    "-sALLOW_BLOCKING_ON_MAIN_THREAD=1"
+    "-sASYNCIFY=1" # needed because the connect loop and probably other parts don't yield to the main loop
+    "-sALLOW_BLOCKING_ON_MAIN_THREAD=1" # related to the above
     "-Wno-limited-postlink-optimizations"
   )
 endif()
@@ -318,8 +318,8 @@ set(QUAKE_SOURCES
 
 if(EMSCRIPTEN)
     list(APPEND QUAKE_SOURCES
-        # websockets/websockets.h
-        # websockets/websockets.c
+        websockets/websockets.h
+        websockets/websockets.c
         net_ws.c
         net_ws.h
     )
@@ -341,19 +341,19 @@ target_link_options(QuakeLib PUBLIC)
 # Tests
 #
 
-# if (EMSCRIPTEN)
-#   add_executable(tests
-#     websockets/test_websockets.c
-#     websockets/websockets.h
-#     websockets/websockets.c
-#   )
+if (EMSCRIPTEN)
+  add_executable(tests
+    websockets/test_websockets.c
+    websockets/websockets.h
+    websockets/websockets.c
+  )
 
-#   # need -sASYNCIFY=1 so we can write synchronous-looking code in our tests and use emscripten_sleep
-#   # need -sNO_EXIT_RUNTIME=1 just to avoid (harmless) explosions if events happen after we finish the tests
-#   set_target_properties(tests PROPERTIES
-#     LINK_FLAGS "-sNODERAWFS=1 -sASYNCIFY=1 -sNO_EXIT_RUNTIME=1 -Wno-limited-postlink-optimizations -gsource-map --source-map-base ./"
-#   )
-# endif()
+  # need -sASYNCIFY=1 so we can write synchronous-looking code in our tests and use emscripten_sleep
+  # need -sNO_EXIT_RUNTIME=1 just to avoid (harmless) explosions if events happen after we finish the tests
+  set_target_properties(tests PROPERTIES
+    LINK_FLAGS "-sNODERAWFS=1 -sASYNCIFY=1 -sNO_EXIT_RUNTIME=1 -Wno-limited-postlink-optimizations -gsource-map --source-map-base ./"
+  )
+endif()
 
 #
 # Quake - the main executable; this is mostly just a main() function that was

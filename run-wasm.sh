@@ -25,4 +25,4 @@ if ! command -v http-server >/dev/null 2>&1; then
 fi
 
 docker build -t quake-wasm-nginx -f ./Dockerfile.nginx .
-docker run --rm -it -p 80:80 -v "$(pwd):/usr/share/nginx/html" quake-wasm-nginx
+docker run --rm -it -p 80:80 -v "$(pwd)/WinQuake/build-wasm:/usr/share/nginx/html" quake-wasm-nginx

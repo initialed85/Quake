@@ -3,11 +3,16 @@
 QW
 qw-qc
 
-WinQuake/build-native
+WinQuake/emsdk
+WinQuake/build-docker/
+WinQuake/build-native/
 WinQuake/build-wasm
-WinQuake/build-docker
 WinQuake/id1/pak0.pak
 WinQuake/id1/pak1.pak
+WinQuake/id1/qconsole.log
+WinQuake/id1/progs/progs.dat
+WinQuake/id1/progs/progs.lno
+WinQuake/CMakeFiles
 
 .gitignore
 build-docker.sh
