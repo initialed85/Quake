@@ -1,0 +1,15 @@
+FROM golang:1.24 AS builder
+
+COPY ./ws-server /srv/ws-server
+
+WORKDIR /srv/ws-server
+
+RUN CGO_ENABLED=0 go build -trimpath -o ./ws-server .
+
+FROM scratch
+
+WORKDIR /srv/
+
+COPY --from=builder /srv/ws-server/ws-server /srv/ws-server
+
+ENTRYPOINT ["/srv/ws-server"]

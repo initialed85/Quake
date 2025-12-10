@@ -72,8 +72,11 @@
       // work out the WebSocket URL (should be the immediate parent of this URL + /ws)
       //
 
-      const urlParts = window.location.href.split("/").filter((x) => !!x.trim());
-      const _ = urlParts.pop();
+      let urlParts = window.location.href.split("/");
+      urlParts.pop();
+      if (urlParts[urlParts.length - 1].trim() == "") {
+        urlParts.pop();
+      }
       urlParts.push("ws");
       const webSocketUrl = urlParts.join("/");
       console.log(`webSocketUrl: ${webSocketUrl}`);
@@ -136,7 +139,10 @@
         arguments.push("-height", height);
       }
 
-      arguments = arguments.filter((x) => x !== "clientId");
+      arguments = arguments.filter((x) => x !== "websocketurl");
+      arguments.push("-websocketurl", webSocketUrl);
+
+      arguments = arguments.filter((x) => x !== "clientid");
       arguments.push("-clientid", clientId);
 
       arguments = arguments.filter((x) => x !== "hostname");

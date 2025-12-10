@@ -42,7 +42,7 @@ This repo contains my attempt to modernise the Quake 1 source code.
     - `./Quake -port 26000 +map start`
     - `./Quake -port 26001 +connect 127.0.0.1:26000`
     - `./Quake -port 26002  +connect 127.0.0.1:26000`
-- [TODO] Implement WebSocket multiplayer for the WASM build (via a proxy / gateway server)
+- [DONE] Implement WebSocket multiplayer for the WASM build (via a proxy / gateway server)
 - [TODO] Fix crash encountered with `-width 2560 -height 1440 -fullscreen` and maybe higher resolutions
 
 ## Usage
@@ -108,5 +108,8 @@ See [original README](./readme.txt) and [original LICENCE](./gnu.txt)
 
 ```shell
 # for deploying Docker-built Linux Quake server to Kubernetes
-ARCH=amd64 ./build-docker.sh && IMAGE=kube-registry:5000/quake:latest PUSH=1 ./package-docker.sh
+ARCH=amd64 ./build-docker.sh && IMAGE=initialed85/quake:latest PUSH=1 ./package-docker.sh
+
+# for deploying native-built WASM Quake server to Kubernetes
+ARCH=amd64 ./build-wasm.sh && IMAGE_1=initialed85/quake-wasm-nginx:latest IMAGE_2=initialed85/quake-ws-server:latest PUSH=1 ./package-wasm.sh
 ```

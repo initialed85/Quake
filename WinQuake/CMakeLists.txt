@@ -93,8 +93,8 @@ if (EMSCRIPTEN)
     "-lopenal"
     "-sEXIT_RUNTIME"
     "-sASYNCIFY=1" # needed because the connect loop and probably other parts don't yield to the main loop
-    "-sALLOW_BLOCKING_ON_MAIN_THREAD=1" # related to the above
-    "-Wno-limited-postlink-optimizations"
+    "-Wno-experimental"
+    "-sALLOW_BLOCKING_ON_MAIN_THREAD=0"
   )
 endif()
 
@@ -124,6 +124,7 @@ if (EMSCRIPTEN)
 
     set(DRY_LDFLAGS ${DRY_LDFLAGS}
       # "-fsanitize=address,undefined,null"
+      "-Wno-limited-postlink-optimizations"
       "-gsource-map"
       "--source-map-base=./"
       "-sSTACK_OVERFLOW_CHECK=2"

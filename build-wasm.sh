@@ -21,7 +21,7 @@ pushd WinQuake >/dev/null
 
 if command -v fteqcc >/dev/null 2>&1; then
 	pushd id1/progs/src >/dev/null
-	fteqcc
+	fteqcc -O3
 	popd >/dev/null
 fi
 

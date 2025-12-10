@@ -494,6 +494,16 @@ void Sys_SendKeyEvents(void) {
       Key_Event(event.button.button + 199, event.type == SDL_MOUSEBUTTONDOWN);
     }
 
+    if (event.type == SDL_MOUSEWHEEL) {
+      if (event.wheel.y > 0) {
+        Key_Event(K_MWHEELUP, true);
+        Key_Event(K_MWHEELUP, false);
+      } else if (event.wheel.y < 0) {
+        Key_Event(K_MWHEELDOWN, true);
+        Key_Event(K_MWHEELDOWN, false);
+      }
+    }
+
     // in keeping with the pattern, most of the mouse motion handling work is
     // done in another event handler- but being that this is our SDL-side event
     // handler, we need to at least store the values of the relative mouse

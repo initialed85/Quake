@@ -1,3 +1,9 @@
 FROM fholzer/nginx-brotli
 
 COPY ./nginx-default.conf /etc/nginx/conf.d/default.conf
+
+COPY ./WinQuake/build-wasm/Quake.data /usr/share/nginx/html/
+COPY ./WinQuake/build-wasm/Quake.html /usr/share/nginx/html/
+COPY ./WinQuake/build-wasm/Quake.js /usr/share/nginx/html/
+COPY ./WinQuake/build-wasm/Quake.wasm /usr/share/nginx/html/
+COPY ./WinQuake/build-wasm/Quake.wasm.map /usr/share/nginx/html/

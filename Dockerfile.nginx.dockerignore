@@ -1,0 +1,9 @@
+**
+
+!nginx-default.conf
+
+!WinQuake/build-wasm/Quake.data
+!WinQuake/build-wasm/Quake.html
+!WinQuake/build-wasm/Quake.js
+!WinQuake/build-wasm/Quake.wasm
+!WinQuake/build-wasm/Quake.wasm.map
