@@ -15,7 +15,7 @@ NO EVENT WILL RYAN "FRIKAC" SMITH BE LIABLE FOR ANY
 GENERAL, CONSEQUENTIAL, INDIRECT, INCIDENTAL,
 EXEMPLARY, OR SPECIAL DAMAGES, EVEN IF RYAN "FRIKAC"
 SMITH HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
-DAMAGES, IRRESPECTIVE OF THE CAUSE OF SUCH DAMAGES. 
+DAMAGES, IRRESPECTIVE OF THE CAUSE OF SUCH DAMAGES.
 
 You accept this software on the condition that you
 indemnify and hold harmless Ryan "FrikaC" Smith from
@@ -23,7 +23,7 @@ any and all liability or damages to third parties,
 including attorney fees, court costs, and other
 related costs and expenses, arising out of your use
 of this software irrespective of the cause of said
-liability. 
+liability.
 
 The export from the United States or the subsequent
 reexport of this software is subject to compliance
@@ -32,10 +32,10 @@ control restrictions. You agree that in the event you
 seek to export this software, you assume full
 responsibility for obtaining all necessary export
 licenses and approvals and for assuring compliance
-with applicable reexport restrictions. 
+with applicable reexport restrictions.
 
 Any reproduction of this software must contain
-this notice in its entirety. 
+this notice in its entirety.
 
 ======================================
 These installation instructions only apply to Normal Quake (as does this
@@ -50,7 +50,7 @@ in your source folder, then...
 * Add the following lines to progs.src right after the defs.qc line
 frikbot/bot.qc
 frikbot/bot_way.qc
-frikbot/bot_fight.qc 
+frikbot/bot_fight.qc
 frikbot/bot_ai.qc
 frikbot/bot_misc.qc
 frikbot/bot_phys.qc
@@ -133,7 +133,7 @@ for all variables in the bot...
 
 // ----- entity fields ---
 .float	wallhug, keys, oldkeys, ishuman;
-.float	b_frags, b_clientno, b_shirt, b_pants; 
+.float	b_frags, b_clientno, b_shirt, b_pants;
 .float	priority, ai_time, b_sound, missile_speed;
 .float	portal_time, b_skill, switch_wallhug;
 .float	b_aiflags, b_num, b_chattime;
@@ -173,14 +173,14 @@ float AI_TELELINK_3	= 4; // link type
 float AI_TELELINK_4	= 8; // link type
 float AI_DOORFLAG		= 16; // read ahead
 float AI_PRECISION	= 32; // read ahead + point
-float AI_SURFACE		= 64; // point 
+float AI_SURFACE		= 64; // point
 float AI_BLIND		= 128; // read ahead + point
 float AI_JUMP		= 256; // point + ignore
 float AI_DIRECTIONAL	= 512; // read ahead + ignore
-float AI_PLAT_BOTTOM	= 1024; // read ahead 
-float AI_RIDE_TRAIN	= 2048; // read ahead 
+float AI_PLAT_BOTTOM	= 1024; // read ahead
+float AI_RIDE_TRAIN	= 2048; // read ahead
 float AI_SUPER_JUMP	= 4096; // point + ignore + route test
-float AI_SNIPER		= 8192; // point type 
+float AI_SNIPER		= 8192; // point type
 float AI_AMBUSH		= 16384; // point type
 float AI_DOOR_NO_OPEN	= 32768; // read ahead
 float AI_DIFFICULT	= 65536; // route test
@@ -215,7 +215,7 @@ float OPT_NOCHAT	= 2;
 float 	active_clients;
 float		max_clients, real_frametime;
 float		bot_count, b_options;
-float		waypoint_mode, dump_mode; 
+float		waypoint_mode, dump_mode;
 float		waypoints, direct_route;
 float		sv_friction, sv_gravity;
 float		sv_accelerate, sv_maxspeed, sv_stopspeed;
@@ -293,7 +293,7 @@ void()				bot_menu_display;
 void(entity e, float chan, string samp, float vol, float atten) frik_sound = #8;
 void(entity client, string s)	frik_stuffcmd = #21;
 void(entity client, string s)	frik_sprint = #24;
-vector(entity e, float sped)	frik_aim = #44;	
+vector(entity e, float sped)	frik_aim = #44;
 void(entity client, string s)	frik_centerprint = #73;
 void(entity e)			frik_setspawnparms = #78;
 void(float to, float f)		frik_WriteByte = #52;
@@ -313,7 +313,7 @@ frik_big_centerprint = #73;
 /*
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-Function redclarations. These allow function 
+Function redclarations. These allow function
 designed to work for clients (sprint, so forth)
 to mainly not complain when working with a bot
 
@@ -329,9 +329,10 @@ void(entity	client, string s) stuffcmd =
 	if (client.ishuman == 1)
 		frik_stuffcmd(client, s);
 	b_temp1 = player_head;
-
+	local float i = 0;
 	while(b_temp1)
 	{
+		i++; if (i > 8) break;
 		if (b_temp1.classname == "botcam")
 		{
 			if ((b_temp1.enemy == client) && b_temp1.ishuman)
@@ -348,8 +349,10 @@ void(entity	e) setspawnparms =
 	else
 	{
 		b_temp1 = player_head;
+		local float i = 0;
 		while(b_temp1)
 		{
+			i++; if (i > 8) break;
 			if (b_temp1.ishuman)
 			{
 				frik_setspawnparms(b_temp1);
@@ -365,9 +368,10 @@ void(entity	client, string s) sprint =
 	if (client.ishuman == 1)
 		frik_sprint(client, s);
 	b_temp1 = player_head;
-
+	local float i = 0;
 	while(b_temp1)
 	{
+		i++; if (i > 8) break;
 		if (b_temp1.classname == "botcam")
 		{
 			if ((b_temp1.enemy == client) && b_temp1.ishuman)
@@ -382,9 +386,10 @@ void(entity	client, string s) centerprint =
 	if (client.ishuman == 1)
 		frik_centerprint(client, s);
 	b_temp1 = player_head;
-
+	local float i = 0;
 	while(b_temp1)
 	{
+		i++; if (i > 8) break;
 		if (b_temp1.classname == "botcam")
 		{
 			if ((b_temp1.enemy == client) && b_temp1.ishuman)
@@ -400,7 +405,7 @@ vector(entity e, float sped) aim =
 	return frik_aim(e, sped);
 };
 
-void(entity e, float chan, string samp, float vol, float atten) sound = 
+void(entity e, float chan, string samp, float vol, float atten) sound =
 {
 
 	frik_sound(e, chan, samp, vol, atten);
@@ -418,43 +423,43 @@ void(float to, float f) WriteByte =
 		return;
 	frik_WriteByte(to, f);
 };
-void(float to, float f) WriteChar =		
+void(float to, float f) WriteChar =
 {
 	if ((to == MSG_ONE) && (msg_entity.ishuman != TRUE))
 		return;
 	frik_WriteChar(to, f);
 };
-void(float to, float f) WriteShort =	
+void(float to, float f) WriteShort =
 {
 	if ((to == MSG_ONE) && (msg_entity.ishuman != TRUE))
 		return;
 	frik_WriteShort(to, f);
 };
-void(float to, float f) WriteLong = 
+void(float to, float f) WriteLong =
 {
 	if ((to == MSG_ONE) && (msg_entity.ishuman != TRUE))
 		return;
 	frik_WriteLong(to, f);
 };
-void(float to, float f) WriteCoord = 
+void(float to, float f) WriteCoord =
 {
 	if ((to == MSG_ONE) && (msg_entity.ishuman != TRUE))
 		return;
 	frik_WriteCoord(to, f);
 };
-void(float to, float f) WriteAngle = 
+void(float to, float f) WriteAngle =
 {
 	if ((to == MSG_ONE) && (msg_entity.ishuman != TRUE))
 		return;
 	frik_WriteAngle(to, f);
 };
-void(float to, string s) WriteString = 
+void(float to, string s) WriteString =
 {
 	if ((to == MSG_ONE) && (msg_entity.ishuman != TRUE))
 		return;
 	frik_WriteString(to, s);
 };
-void(float to, entity s) WriteEntity = 
+void(float to, entity s) WriteEntity =
 {
 	if ((to == MSG_ONE) && (msg_entity.ishuman != TRUE))
 		return;
@@ -492,18 +497,18 @@ float() botcam =
 	self.deadflag = self.enemy.deadflag;
 	msg_entity = self;
 	WriteByte (MSG_ONE,5);
-	WriteEntity (MSG_ONE, self.enemy); 
+	WriteEntity (MSG_ONE, self.enemy);
 	WriteByte (MSG_ONE, 10);
      	WriteAngle (MSG_ONE,self.enemy.v_angle_x);
      	WriteAngle (MSG_ONE,self.enemy.v_angle_y);
      	WriteAngle (MSG_ONE,self.enemy.v_angle_z);
 	self.modelindex = 0;
-	
-	self.impulse = 0;	
-	return TRUE;	
+
+	self.impulse = 0;
+	return TRUE;
 };
 
-void() botcam_u = 
+void() botcam_u =
 {
 	// sloppy cycling code
 	if (self.classname != "botcam")
@@ -576,14 +581,14 @@ void() ClientFixRankings =
 		b_temp2 = nextent(b_temp2);
 	}
 };
-		
+
 void() ClientInRankings =
 {
 	local float cno;
 
    	cno = self.colormap - 1;
 	BotInvalidClientNo (cno);
-	
+
 	if (player_head)
 		player_head._last = self;
 
@@ -605,7 +610,7 @@ void() ClientInRankings =
 		return;
 	}
 	active_clients = active_clients | ClientBitFlag(cno);
-	
+
 	self.b_clientno = cno;
 	self.ishuman = TRUE;
 	self.switch_wallhug = time + 1;
@@ -641,11 +646,11 @@ float () BotPreFrame =
 			ClientFixRankings();
 		if (self.classname == "botcam")
 			return TRUE;
-		
+
 	}
 	if (self.b_frags != self.frags)
 	{
-		
+
 		if (self.b_frags > self.frags)
 		{
 			if (pointcontents(self.origin) == CONTENT_LAVA)
@@ -708,7 +713,7 @@ void(string h) BotSay2 =
 	WriteByte(MSG_ALL, 2);
 	WriteString(MSG_ALL, h);
 };
-void(string h) BotSayTeam = 
+void(string h) BotSayTeam =
 {
 	local entity t;
 	if (!teamplay)
@@ -744,7 +749,7 @@ void() BotInit =
 {
 	local entity ent, fisent;
 	local float numents;
-	
+
 	// spawn entities for the physics
 	ent = nextent(world);
 	max_clients = 0;
@@ -873,7 +878,7 @@ void(entity e1, entity e2, float flag) DeveloperLightning =
 	WriteCoord (MSG_BROADCAST, e1.origin_z);
 	WriteCoord (MSG_BROADCAST, e2.origin_x);
 	WriteCoord (MSG_BROADCAST, e2.origin_y);
-	WriteCoord (MSG_BROADCAST, e2.origin_z); 
+	WriteCoord (MSG_BROADCAST, e2.origin_z);
 };
 
 /*
@@ -928,7 +933,7 @@ float(float tcolor) FindAnotherColor =
 BotConnect and related functions.
 
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-*/				
+*/
 entity(float num) GetClientEntity =
 {
 	local entity upsy;
@@ -938,7 +943,7 @@ entity(float num) GetClientEntity =
 	{
 		num = num - 1;
 		upsy = nextent(upsy);
-	} 
+	}
 	return upsy;
 };
 
@@ -947,7 +952,7 @@ void(float whichteam, float whatbot, float whatskill) BotConnect =
 	local float f;
 	local string h;
 	local entity uself;
-	
+
 	f = ClientNextAvailable();
 	uself = self;
 	if(f == -1)
@@ -955,7 +960,7 @@ void(float whichteam, float whatbot, float whatskill) BotConnect =
 		bprint("Unable to connect a bot, server is full.\n");
 		return;
 	}
-	
+
 	// chat thing
 
 	bot_count = bot_count + 1;
@@ -1075,7 +1080,7 @@ void(float clientno) BotInvalidClientNo =
 			bot.b_clientno = -1;
 			BotDisconnect(bot);
 			active_clients = active_clients | ClientBitFlag(self.b_clientno);
-			BotConnect(0, bot.b_num, bot.b_skill); 
+			BotConnect(0, bot.b_num, bot.b_skill);
 			return;
 		}
 	}
@@ -1088,7 +1093,7 @@ Waypoint Loading from file
 
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 */
-void() LoadWaypoint = 
+void() LoadWaypoint =
 {
 	local vector org;
 	local entity tep;
@@ -1096,7 +1101,7 @@ void() LoadWaypoint =
 	org_x = cvar("saved1");
 	org_y = cvar("saved2");
 	org_z = cvar("saved3");
-	
+
 	tep = make_waypoint(org);
 
 	r = cvar("saved4");
@@ -1203,7 +1208,7 @@ void() BotFrame =
 	sv_accelerate = cvar("sv_accelerate");
 	sv_stopspeed = cvar("sv_stopspeed");
 	real_frametime = frametime; // in NQ this is alright
-	
+
 	self = nextent(world);
 	num = 0;
 	while (num < max_clients)
@@ -1261,6 +1266,3 @@ void() BotImpulses =
 
 	self.impulse = 0;
 };
-
-
-

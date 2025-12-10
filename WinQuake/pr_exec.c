@@ -29,11 +29,11 @@ typedef struct {
   dfunction_t *f;
 } prstack_t;
 
-#define MAX_STACK_DEPTH 32
+#define MAX_STACK_DEPTH 128
 prstack_t pr_stack[MAX_STACK_DEPTH];
 int pr_depth;
 
-#define LOCALSTACK_SIZE 2048
+#define LOCALSTACK_SIZE 8192
 int localstack[LOCALSTACK_SIZE];
 int localstack_used;
 
@@ -304,7 +304,7 @@ void PR_ExecuteProgram(func_t fnum) {
 
   f = &pr_functions[fnum];
 
-  runaway = 100000;
+  runaway = 1000000;
   pr_trace = false;
 
   // make a stack frame
