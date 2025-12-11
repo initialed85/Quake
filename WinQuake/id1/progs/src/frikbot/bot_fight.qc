@@ -102,7 +102,7 @@ void() bot_dodge_stuff =
 	i = 0;
 	while(foe)
 	{
-		i++; if (i > 8) break;
+		i++; if (i > 64) break;
 		flen = vlen(foe.origin - self.origin);
 		if (flen < avdist)
 		{
@@ -117,7 +117,7 @@ void() bot_dodge_stuff =
 		i = 0;
 		while(foe)
 		{
-			i++; if (i > 8) break;
+			i++; if (i > 64) break;
 			if (foe.owner != self)
 			{
 				flen = vlen(foe.origin - self.origin);
@@ -135,7 +135,7 @@ void() bot_dodge_stuff =
 			i = 0;
 			while(foe)
 			{
-				i++; if (i > 8) break;
+				i++; if (i > 64) break;
 				if (foe.owner != self)
 				{
 					flen = vlen(foe.origin - self.origin);
@@ -157,7 +157,7 @@ void() bot_dodge_stuff =
 			i = 0;
 			while(foe)
 			{
-				i++; if (i > 8) break;
+				i++; if (i > 64) break;
 				if(foe.flags & FL_MONSTER)
 				{
 					if(foe.health > 0)
@@ -183,7 +183,7 @@ void() bot_dodge_stuff =
 		i = 0;
 		while(foe)
 		{
-			i++; if (i > 8) break;
+			i++; if (i > 64) break;
 			if(foe != self)
 			{
 				if (foe.modelindex != 0)

@@ -106,9 +106,9 @@ int main(int c, char **v) {
   parms.argv = com_argv;
 
 #ifdef GLQUAKE
-  parms.memsize = 32 * 1024 * 1024;
+  parms.memsize = 256 * 1024 * 1024;
 #else
-  parms.memsize = 32 * 1024 * 1024;
+  parms.memsize = 256 * 1024 * 1024;
 #endif
 
   j = COM_CheckParm("-mem");

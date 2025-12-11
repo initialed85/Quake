@@ -332,7 +332,7 @@ void(entity	client, string s) stuffcmd =
 	local float i = 0;
 	while(b_temp1)
 	{
-		i++; if (i > 8) break;
+		i++; if (i > 64) break;
 		if (b_temp1.classname == "botcam")
 		{
 			if ((b_temp1.enemy == client) && b_temp1.ishuman)
@@ -352,7 +352,7 @@ void(entity	e) setspawnparms =
 		local float i = 0;
 		while(b_temp1)
 		{
-			i++; if (i > 8) break;
+			i++; if (i > 64) break;
 			if (b_temp1.ishuman)
 			{
 				frik_setspawnparms(b_temp1);
@@ -371,7 +371,7 @@ void(entity	client, string s) sprint =
 	local float i = 0;
 	while(b_temp1)
 	{
-		i++; if (i > 8) break;
+		i++; if (i > 64) break;
 		if (b_temp1.classname == "botcam")
 		{
 			if ((b_temp1.enemy == client) && b_temp1.ishuman)
@@ -389,7 +389,7 @@ void(entity	client, string s) centerprint =
 	local float i = 0;
 	while(b_temp1)
 	{
-		i++; if (i > 8) break;
+		i++; if (i > 64) break;
 		if (b_temp1.classname == "botcam")
 		{
 			if ((b_temp1.enemy == client) && b_temp1.ishuman)
@@ -759,8 +759,8 @@ void() BotInit =
 		max_clients = max_clients + 1;
 		ent = nextent(ent);
 	}
-	if (max_clients > 16)
-		max_clients = 16;
+	if (max_clients > 32)
+		max_clients = 32;
 
 	ent = nextent(world);
 	fisent = world;
@@ -813,37 +813,69 @@ float(float clientno) ClientBitFlag =
 {
 	// bigger, but faster
 	if (clientno == 0)
-		return 1;
+	    return 1;
 	else if (clientno == 1)
-		return 2;
+	    return 2;
 	else if (clientno == 2)
-		return 4;
+	    return 4;
 	else if (clientno == 3)
-		return 8;
+	    return 8;
 	else if (clientno == 4)
-		return 16;
+	    return 16;
 	else if (clientno == 5)
-		return 32;
+	    return 32;
 	else if (clientno == 6)
-		return 64;
+	    return 64;
 	else if (clientno == 7)
-		return 128;
+	    return 128;
 	else if (clientno == 8)
-		return 256;
+	    return 256;
 	else if (clientno == 9)
-		return 512;
+	    return 512;
 	else if (clientno == 10)
-		return 1024;
+	    return 1024;
 	else if (clientno == 11)
-		return 2048;
+	    return 2048;
 	else if (clientno == 12)
-		return 4096;
+	    return 4096;
 	else if (clientno == 13)
-		return 8192;
+	    return 8192;
 	else if (clientno == 14)
-		return 16384;
+	    return 16384;
 	else if (clientno == 15)
-		return 32768;
+	    return 32768;
+	else if (clientno == 16)
+	    return 65536;
+	else if (clientno == 17)
+	    return 131072;
+	else if (clientno == 18)
+	    return 262144;
+	else if (clientno == 19)
+	    return 524288;
+	else if (clientno == 20)
+	    return 1048576;
+	else if (clientno == 21)
+	    return 2097152;
+	else if (clientno == 22)
+	    return 4194304;
+	else if (clientno == 23)
+	    return 8388608;
+	else if (clientno == 24)
+	    return 16777216;
+	else if (clientno == 25)
+	    return 33554432;
+	else if (clientno == 26)
+	    return 67108864;
+	else if (clientno == 27)
+	    return 134217728;
+	else if (clientno == 28)
+	    return 268435456;
+	else if (clientno == 29)
+	    return 536870912;
+	else if (clientno == 30)
+	    return 1073741824;
+	else if (clientno == 31)
+	    return 2147483648;
 	return 0;
 };
 

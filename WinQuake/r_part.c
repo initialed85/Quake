@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "r_local.h"
 
 #define MAX_PARTICLES                                                          \
-  2048 // default max # of particles at one
+  4096 // default max # of particles at one
        //  time
 #define ABSOLUTE_MIN_PARTICLES                                                 \
   512 // no fewer than this no matter what's
