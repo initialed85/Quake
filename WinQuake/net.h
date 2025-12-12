@@ -216,7 +216,7 @@ qsocket_t *NET_NewQSocket(void);
 void NET_FreeQSocket(qsocket_t *);
 double SetNetTime(void);
 
-#define HOSTCACHESIZE 8
+#define HOSTCACHESIZE 32
 
 typedef struct {
   char name[16];

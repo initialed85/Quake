@@ -80,6 +80,8 @@ set(DRY_LDFLAGS
 if (EMSCRIPTEN)
   set(DRY_CFLAGS ${DRY_CFLAGS}
     "-sUSE_SDL=2" # compile the emscripten-provided SDL2
+    "-matomics"
+    "-mbulk-memory"
   )
 
   set(DRY_LDFLAGS ${DRY_LDFLAGS}
@@ -91,10 +93,17 @@ if (EMSCRIPTEN)
     "-lwebsocket.js"
     "--shell-file=../shell.html"
     "-lopenal"
-    "-sEXIT_RUNTIME"
+    "-sEXIT_RUNTIME=1"
     "-sASYNCIFY=1" # needed because the connect loop and probably other parts don't yield to the main loop
+    "-sASYNCIFY_STACK_SIZE=16384000"
     "-Wno-experimental"
     "-sALLOW_BLOCKING_ON_MAIN_THREAD=0"
+    # "-pthread"
+    # "-sPROXY_TO_PTHREAD=1"
+    # "-sPTHREAD_POOL_SIZE=navigator.hardwareConcurrency"
+    # "-mshared-memory"
+    # "-sOFFSCREEN_FRAMEBUFFER=1"
+    # "-sAUDIO_WORKLET=1"
   )
 endif()
 
@@ -130,6 +139,7 @@ if (EMSCRIPTEN)
       "-sSTACK_OVERFLOW_CHECK=2"
       "-sCHECK_NULL_WRITES=1"
       "-sASSERTIONS=2"
+      "-sGL_DEBUG=1"
     )
   endif()
 else()

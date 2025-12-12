@@ -191,7 +191,7 @@ void() misc_fireball =
 
 	precache_model("progs/lavaball.mdl");
 	self.classname = "fireball";
-	self.nextthink = time + (random() * 5);
+	self.nextthink = time + 0.1 + (random() * 5); // 1998-08-14 Incorrect setting of nextthink fix by Maddes/Lord Sméagol
 	self.think = fire_fly;
 	if (!self.speed)
 		self.speed = 1000;

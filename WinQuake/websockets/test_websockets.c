@@ -45,14 +45,14 @@ int test_websocket_happy_path_one_client() {
 
   int i;
 
-  assert(websocket_open(websocket, "ws://127.0.0.1:8081/ws", tx_src) == 0);
-  emscripten_sleep(10);
+  assert(websocket_open(websocket, "ws://127.0.0.1:8080/ws", tx_src) == 0);
+  emscripten_sleep(100);
 
   for (i = 0; i < 3; i++) {
     sprintf(tx_buf, "Hello, world! #%d", i);
     assert(websocket_write(websocket, tx_buf, (unsigned long)strlen(tx_buf),
                            tx_dst, true, false) == 16);
-    emscripten_sleep(10);
+    emscripten_sleep(100);
   }
 
   for (i = 0; i < 3; i++) {
@@ -61,14 +61,14 @@ int test_websocket_happy_path_one_client() {
     assert(strcmp(addr_to_string_static(rx_src), "255.255.255.255:26000") == 0);
     assert(strcmp(addr_to_string_static(rx_dst), "127.0.0.1:26001") == 0);
     assert(strcmp(rx_buf, tx_buf) == 0);
-    emscripten_sleep(10);
+    emscripten_sleep(100);
   }
 
   assert(websocket_read(websocket, rx_src, rx_dst, rx_buf) == -1);
-  emscripten_sleep(10);
+  emscripten_sleep(100);
 
   assert(websocket_close(websocket) == 0);
-  emscripten_sleep(10);
+  emscripten_sleep(100);
 
   free(tx_src);
   free(tx_dst);
@@ -108,71 +108,71 @@ int test_websocket_happy_path_many_clients_unicast() {
   websocket_t *websocket_3 = websocket_init();
 
   assert(websocket_open(websocket_1, "ws://127.0.0.1:8081/ws", addr_1) == 0);
-  emscripten_sleep(10);
+  emscripten_sleep(100);
 
   assert(websocket_open(websocket_2, "ws://127.0.0.1:8081/ws", addr_2) == 0);
-  emscripten_sleep(10);
+  emscripten_sleep(100);
 
   assert(websocket_open(websocket_3, "ws://127.0.0.1:8081/ws", addr_3) == 0);
-  emscripten_sleep(10);
+  emscripten_sleep(100);
 
   sprintf(tx_buf, "Hello, world! #%d", 2);
   assert(websocket_write(websocket_1, tx_buf, (unsigned long)strlen(tx_buf),
                          addr_2, false, true) == 16);
-  emscripten_sleep(10);
+  emscripten_sleep(100);
 
   sprintf(tx_buf, "Hello, world! #%d", 3);
   assert(websocket_write(websocket_1, tx_buf, (unsigned long)strlen(tx_buf),
                          addr_3, false, true) == 16);
-  emscripten_sleep(10);
+  emscripten_sleep(100);
 
   sprintf(tx_buf, "Hello, world! #%d", 255);
   assert(websocket_write(websocket_1, tx_buf, (unsigned long)strlen(tx_buf),
                          addr_255, false, true) == 18);
-  emscripten_sleep(10);
+  emscripten_sleep(100);
 
   sprintf(tx_buf, "Hello, world! #%d", 2);
   assert(websocket_read(websocket_2, rx_src, rx_dst, rx_buf) == 16);
   assert(strcmp(addr_to_string_static(rx_src), "127.0.0.1:26001") == 0);
   assert(strcmp(addr_to_string_static(rx_dst), "127.0.0.2:26001") == 0);
   assert(strcmp(rx_buf, tx_buf) == 0);
-  emscripten_sleep(10);
+  emscripten_sleep(100);
 
   sprintf(tx_buf, "Hello, world! #%d", 3);
   assert(websocket_read(websocket_3, rx_src, rx_dst, rx_buf) == 16);
   assert(strcmp(addr_to_string_static(rx_src), "127.0.0.1:26001") == 0);
   assert(strcmp(addr_to_string_static(rx_dst), "127.0.0.3:26001") == 0);
   assert(strcmp(rx_buf, tx_buf) == 0);
-  emscripten_sleep(10);
+  emscripten_sleep(100);
 
   sprintf(tx_buf, "Hello, world! #%d", 255);
   assert(websocket_read(websocket_2, rx_src, rx_dst, rx_buf) == 18);
   assert(strcmp(addr_to_string_static(rx_src), "127.0.0.1:26001") == 0);
   assert(strcmp(addr_to_string_static(rx_dst), "255.255.255.255:26001") == 0);
   assert(strcmp(rx_buf, tx_buf) == 0);
-  emscripten_sleep(10);
+  emscripten_sleep(100);
 
   sprintf(tx_buf, "Hello, world! #%d", 255);
   assert(websocket_read(websocket_3, rx_src, rx_dst, rx_buf) == 18);
   assert(strcmp(addr_to_string_static(rx_src), "127.0.0.1:26001") == 0);
   assert(strcmp(addr_to_string_static(rx_dst), "255.255.255.255:26001") == 0);
   assert(strcmp(rx_buf, tx_buf) == 0);
-  emscripten_sleep(10);
+  emscripten_sleep(100);
 
   assert(websocket_read(websocket_2, rx_src, rx_dst, rx_buf) == -1);
-  emscripten_sleep(10);
+  emscripten_sleep(100);
 
   assert(websocket_read(websocket_3, rx_src, rx_dst, rx_buf) == -1);
-  emscripten_sleep(10);
+  emscripten_sleep(100);
 
   assert(websocket_close(websocket_1) == 0);
-  emscripten_sleep(10);
+  emscripten_sleep(100);
 
   assert(websocket_close(websocket_2) == 0);
-  emscripten_sleep(10);
+  emscripten_sleep(100);
 
   assert(websocket_close(websocket_3) == 0);
-  emscripten_sleep(10);
+  emscripten_sleep(100);
 
   free(addr_1);
   free(addr_2);

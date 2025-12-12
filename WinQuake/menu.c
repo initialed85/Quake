@@ -2001,7 +2001,7 @@ void M_Menu_LanConfig_f(void) {
   m_entersound = true;
   if (lanConfig_cursor == -1) {
     if (JoiningGame && TCPIPConfig)
-      lanConfig_cursor = 2;
+      lanConfig_cursor = 1;
     else
       lanConfig_cursor = 1;
   }

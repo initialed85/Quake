@@ -377,12 +377,12 @@ void *Hunk_AllocName(int size, char *name) {
 #endif
 
   if (size < 0)
-    Sys_Error("Hunk_Alloc: bad size: %i", size);
+    Sys_Error("Hunk_Alloc: bad size: %i for name: %s", size, name);
 
   size = sizeof(hunk_t) + ((size + 15) & ~15);
 
   if (hunk_size - hunk_low_used - hunk_high_used < size)
-    Sys_Error("Hunk_Alloc: failed on %i bytes", size);
+    Sys_Error("Hunk_Alloc: failed on %i bytes for name: %s", size, name);
 
   h = (hunk_t *)(hunk_base + hunk_low_used);
   hunk_low_used += size;
@@ -394,6 +394,8 @@ void *Hunk_AllocName(int size, char *name) {
   h->size = size;
   h->sentinal = HUNK_SENTINAL;
   Q_strncpy(h->name, name, 8);
+
+  printf("Hunk_AllocName: size: %d, hunk_size: %d, hunk_low_used: %d, hunk_high_used: %d, name: %s\n", size, hunk_size, hunk_low_used, hunk_high_used, name);
 
   return (void *)(h + 1);
 }
@@ -412,6 +414,8 @@ void Hunk_FreeToLowMark(int mark) {
     Sys_Error("Hunk_FreeToLowMark: bad mark %i", mark);
   memset(hunk_base + mark, 0, hunk_low_used - mark);
   hunk_low_used = mark;
+
+  printf("Hunk_FreeToLowMark: mark: %d, hunk_size: %d, hunk_low_used: %d, hunk_high_used: %d\n", mark, hunk_size, hunk_low_used, hunk_high_used);
 }
 
 int Hunk_HighMark(void) {
@@ -432,6 +436,8 @@ void Hunk_FreeToHighMark(int mark) {
     Sys_Error("Hunk_FreeToHighMark: bad mark %i", mark);
   memset(hunk_base + hunk_size - hunk_high_used, 0, hunk_high_used - mark);
   hunk_high_used = mark;
+
+  printf("Hunk_FreeToHighMark: mark: %d, hunk_size: %d, hunk_low_used: %d, hunk_high_used: %d\n", mark, hunk_size, hunk_low_used, hunk_high_used);
 }
 
 /*

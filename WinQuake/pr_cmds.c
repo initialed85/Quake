@@ -235,7 +235,8 @@ void PF_setmodel(void) {
   if (!*check)
     PR_RunError("no precache: %s\n", m);
 
-  e->v.model = ED_NewString(m) - pr_strings;
+  // e->v.model = ED_NewString(m) - pr_strings;
+  e->v.model = m - pr_strings;
   e->v.modelindex = i; // SV_ModelIndex (m);
 
   mod = sv.models[(int)e->v.modelindex]; // Mod_ForName (m, true);
@@ -259,6 +260,7 @@ void PF_bprint(void) {
   char *s;
 
   s = PF_VarString(0);
+
   SV_BroadcastPrintf("%s", s);
 }
 
@@ -288,6 +290,8 @@ void PF_sprint(void) {
 
   MSG_WriteChar(&client->message, svc_print);
   MSG_WriteString(&client->message, s);
+
+  printf("(%s) %s", client->name, s);
 }
 
 /*
@@ -316,6 +320,8 @@ void PF_centerprint(void) {
 
   MSG_WriteChar(&client->message, svc_centerprint);
   MSG_WriteString(&client->message, s);
+
+  printf("(%s) %s", client->name, s);
 }
 
 /*
@@ -868,7 +874,9 @@ void PF_ftos(void) {
     sprintf(pr_string_temp, "%d", (int)v);
   else
     sprintf(pr_string_temp, "%5.1f", v);
-  G_INT(OFS_RETURN) = ED_NewString(pr_string_temp) - pr_strings;
+
+  // G_INT(OFS_RETURN) = ED_NewString(pr_string_temp) - pr_strings;
+  G_INT(OFS_RETURN) = pr_string_temp - pr_strings;
 }
 
 void PF_fabs(void) {

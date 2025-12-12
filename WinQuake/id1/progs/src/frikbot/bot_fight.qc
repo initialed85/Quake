@@ -430,7 +430,7 @@ void() bot_fight_style =
 			else
 				frik_walkmove(v1);
 		}
-		else if (!self.enemy.flags & FL_MONSTER)
+		else if (!(self.enemy.flags & FL_MONSTER))
 		{
 			if (foedist + 32 <  v_x)
 				frik_walkmove(self.origin - org);

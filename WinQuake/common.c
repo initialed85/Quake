@@ -1487,7 +1487,7 @@ pack_t *COM_LoadPackFile(char *packfile) {
     newfiles[i].filelen = LittleLong(info[i].filelen);
   }
 
-  pack = Hunk_Alloc(sizeof(pack_t));
+  pack = Hunk_AllocName(sizeof(pack_t), packfile);
   strcpy(pack->filename, packfile);
   pack->handle = packhandle;
   pack->numfiles = numpackfiles;
@@ -1516,7 +1516,7 @@ void COM_AddGameDirectory(char *dir) {
   //
   // add the directory to the search path
   //
-  search = Hunk_Alloc(sizeof(searchpath_t));
+  search = Hunk_AllocName(sizeof(searchpath_t), dir);
   strcpy(search->filename, dir);
   search->next = com_searchpaths;
   com_searchpaths = search;
@@ -1529,7 +1529,7 @@ void COM_AddGameDirectory(char *dir) {
     pak = COM_LoadPackFile(pakfile);
     if (!pak)
       break;
-    search = Hunk_Alloc(sizeof(searchpath_t));
+    search = Hunk_AllocName(sizeof(searchpath_t), pakfile);
     search->pack = pak;
     search->next = com_searchpaths;
     com_searchpaths = search;
@@ -1615,7 +1615,7 @@ void COM_InitFilesystem(void) {
       if (!com_argv[i] || com_argv[i][0] == '+' || com_argv[i][0] == '-')
         break;
 
-      search = Hunk_Alloc(sizeof(searchpath_t));
+      search = Hunk_AllocName(sizeof(searchpath_t), com_argv[i]);
       if (!strcmp(COM_FileExtension(com_argv[i]), "pak")) {
         search->pack = COM_LoadPackFile(com_argv[i]);
         if (!search->pack)

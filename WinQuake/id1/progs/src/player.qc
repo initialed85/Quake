@@ -394,8 +394,14 @@ void() player_die_ax1;
 void() DeathBubblesSpawn =
 {
 	entity bubble;
-	if (self.owner.waterlevel != 3)
+
+	if ((self.owner.waterlevel != 3) && (self.owner.health > 0)) // 1998-08-14 Improved bubble spawn by Maddes
+	{
+
+		remove(self); // 1998-08-14 Bubblespawner remove fix by Perged
 		return;
+	}
+
 	bubble = spawn();
 	setmodel(bubble, "progs/s_bubble.spr");
 	setorigin(bubble, self.owner.origin + '0 0 24');
@@ -408,7 +414,9 @@ void() DeathBubblesSpawn =
 	bubble.frame = 0;
 	bubble.cnt = 0;
 	setsize(bubble, '-8 -8 -8', '8 8 8');
-	self.nextthink = time + 0.1;
+
+	self.nextthink = time + 0.01; // 1998-08-14 Improved bubble spawn by Maddes
+
 	self.think = DeathBubblesSpawn;
 	self.air_finished = self.air_finished + 1;
 	if (self.air_finished >= self.bubble_count)
@@ -423,7 +431,9 @@ void(float num_bubbles) DeathBubbles =
 	setorigin(bubble_spawner, self.origin);
 	bubble_spawner.movetype = MOVETYPE_NONE;
 	bubble_spawner.solid = SOLID_NOT;
-	bubble_spawner.nextthink = time + 0.1;
+
+	bubble_spawner.nextthink = time + 0.01; // 1998-08-14 Improved bubble spawn by Maddes
+
 	bubble_spawner.think = DeathBubblesSpawn;
 	bubble_spawner.air_finished = 0;
 	bubble_spawner.owner = self;

@@ -57,7 +57,7 @@ EM_BOOL _websocket_onopen(int eventType,
 
   printf("websockets.c %s : onopen\n", self->srcstr);
 
-  self->connected = true;
+  self->is_connected = true;
 
   struct qsockaddr *tx_src = calloc(1, sizeof(struct qsockaddr));
   struct qsockaddr *tx_dst = calloc(1, sizeof(struct qsockaddr));
@@ -93,7 +93,7 @@ EM_BOOL _websocket_onclose(int eventType,
   printf("websockets.c %s : onclose\n", self->srcstr);
 
   self->sock = 0;
-  self->connected = false;
+  self->is_connected = false;
 
   return EM_TRUE;
 }
@@ -154,8 +154,8 @@ _websocket_onmessage(int eventType,
                  dststring);
   // printf("websockets.c %s : onmessage; read %d bytes (%s -> %s)\n",
   //        self->srcstr,
-  //        self->messages.messages[self->messages.write_index].length, srcstring,
-  //        dststring);
+  //        self->messages.messages[self->messages.write_index].length,
+  //        srcstring, dststring);
 
   self->messages.write_index++;
 
@@ -209,12 +209,15 @@ int websocket_open(websocket_t *self, const char *url, struct qsockaddr *src) {
       EM_TRUE,
   };
 
+  self->url = url;
   self->src = src;
   memcpy(self->srcstr, srcstr, sizeof(struct qsockaddr));
 
   if (self->buf == NULL) {
     self->buf = calloc(MAX_WS_MESSAGE_SIZE, sizeof(char));
   }
+
+  self->is_connected = false;
 
   self->sock = emscripten_websocket_new(&ws_attrs);
   if (self->sock < 1) {
@@ -226,7 +229,7 @@ int websocket_open(websocket_t *self, const char *url, struct qsockaddr *src) {
     return -1;
   }
 
-  self->connected = false;
+  self->should_be_connected = true;
 
   emscripten_websocket_set_onopen_callback(self->sock, (void *)self,
                                            _websocket_onopen);
@@ -263,6 +266,8 @@ int websocket_close(websocket_t *self) {
 
   printf("websockets.c %s : websocket_close\n", self->srcstr);
 
+  self->should_be_connected = false;
+
   emscripten_websocket_close(self->sock, 1000,
                              "going away (websocket_close called)");
 
@@ -287,7 +292,7 @@ int websocket_write_spoof(websocket_t *self, char *buf, int len,
     return 1;
   }
 
-  if (!self->connected) {
+  if (!self->is_connected) {
     printf("websockets.c %s : websocket_write; error - cannot write; sock yet "
            "connected!\n",
            srcstr);
@@ -401,7 +406,8 @@ int websocket_peek(websocket_t *self) {
   }
 
   if (self->messages.messages[self->messages.read_index].length < 0) {
-    // printf("websockets.c %s : websocket_peek; nothing to peek (length = -1)\n",
+    // printf("websockets.c %s : websocket_peek; nothing to peek (length =
+    // -1)\n",
     //        self->srcstr);
     return -1;
   }

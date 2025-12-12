@@ -267,6 +267,8 @@ void SV_ClientPrintf(char *fmt, ...) {
   vsprintf(string, fmt, argptr);
   va_end(argptr);
 
+  printf("%s", string);
+
   MSG_WriteByte(&host_client->message, svc_print);
   MSG_WriteString(&host_client->message, string);
 }
@@ -281,11 +283,13 @@ Sends text to all active clients
 void SV_BroadcastPrintf(char *fmt, ...) {
   va_list argptr;
   char string[1024];
-  int i;
+  int i = 0;
 
   va_start(argptr, fmt);
   vsprintf(string, fmt, argptr);
   va_end(argptr);
+
+  printf("%s", string);
 
   for (i = 0; i < svs.maxclients; i++)
     if (svs.clients[i].active && svs.clients[i].spawned) {

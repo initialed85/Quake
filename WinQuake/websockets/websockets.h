@@ -29,12 +29,14 @@ typedef struct {
 } messages_t;
 
 typedef struct {
+  const char *url;
   struct qsockaddr *src;
   char srcstr[22];
   char *buf;
   messages_t messages;
   EMSCRIPTEN_WEBSOCKET_T sock;
-  qboolean connected;
+  qboolean should_be_connected;
+  qboolean is_connected;
 } websocket_t;
 
 int string_to_addr(char *string, struct qsockaddr *addr);

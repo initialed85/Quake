@@ -808,6 +808,7 @@ float (entity targ) sisible =
 		return TRUE;
 	else if (trace_fraction == 1)
 		return TRUE;
+	return FALSE;
 };
 /*
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
