@@ -2,6 +2,10 @@
 
 This repo contains my attempt to modernise the Quake 1 source code.
 
+If it's working (mileage varies) you can play it right now at [quake.initialed85.cc](https://quake.initialed85.cc); I'm running
+a few dedicated servers, but you can also run your own to play against others right from your (standard old school Quake listen
+server style).
+
 ## Goals
 
 - Aim to keep the experience primarily vanilla with a few tasteful improvements
@@ -44,6 +48,9 @@ This repo contains my attempt to modernise the Quake 1 source code.
     - `./Quake -port 26002  +connect 127.0.0.1:26000`
 - [DONE] Implement WebSocket multiplayer for the WASM build (via a proxy / gateway server)
 - [TODO] Fix crash encountered with `-width 2560 -height 1440 -fullscreen` and maybe higher resolutions
+- [TODO] Fix server search screen not finding all servers
+- [TODO] Fix FrikBot going into some state where it won't attack (probably relates to my workaround hack for runaway loop error)
+- [TODO] Make it so the server can specify some FrikBots to join from the commandline
 
 ## Usage
 
