@@ -128,7 +128,7 @@ void() walkmonster_start_go =
 	}
 
 // spread think times so they don't all happen at same time
-	self.nextthink = time + 0.1 + random()*0.5; // 1998-08-14 Monsters sometimes do not move fix by Lord Sméagol
+	self.nextthink = self.nextthink + random()*0.5;
 };
 
 
@@ -136,7 +136,7 @@ void() walkmonster_start =
 {
 // delay drop to floor to make sure all doors have been spawned
 // spread think times so they don't all happen at same time
-	self.nextthink = self.nextthink + random()*0.5; // 1998-08-14 Monsters sometimes do not move fix by Lord Sméagol
+	self.nextthink = self.nextthink + random()*0.5;
 	self.think = walkmonster_start_go;
 	total_monsters = total_monsters + 1;
 };
@@ -245,3 +245,5 @@ void() swimmonster_start =
 	self.think = swimmonster_start_go;
 	total_monsters = total_monsters + 1;
 };
+
+
