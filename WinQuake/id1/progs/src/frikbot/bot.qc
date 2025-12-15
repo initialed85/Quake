@@ -332,7 +332,7 @@ void(entity	client, string s) stuffcmd =
 	local float i = 0;
 	while(b_temp1)
 	{
-		i++; if (i > 64) break;
+		i++; if (i > 1024) break;
 		if (b_temp1.classname == "botcam")
 		{
 			if ((b_temp1.enemy == client) && b_temp1.ishuman)
@@ -352,7 +352,7 @@ void(entity	e) setspawnparms =
 		local float i = 0;
 		while(b_temp1)
 		{
-			i++; if (i > 64) break;
+			i++; if (i > 1024) break;
 			if (b_temp1.ishuman)
 			{
 				frik_setspawnparms(b_temp1);
@@ -371,7 +371,7 @@ void(entity	client, string s) sprint =
 	local float i = 0;
 	while(b_temp1)
 	{
-		i++; if (i > 64) break;
+		i++; if (i > 1024) break;
 		if (b_temp1.classname == "botcam")
 		{
 			if ((b_temp1.enemy == client) && b_temp1.ishuman)
@@ -389,7 +389,7 @@ void(entity	client, string s) centerprint =
 	local float i = 0;
 	while(b_temp1)
 	{
-		i++; if (i > 64) break;
+		i++; if (i > 1024) break;
 		if (b_temp1.classname == "botcam")
 		{
 			if ((b_temp1.enemy == client) && b_temp1.ishuman)
