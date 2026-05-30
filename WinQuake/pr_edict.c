@@ -942,7 +942,7 @@ void PR_LoadProgs(void) {
               progs->version, PROG_VERSION);
   if (progs->crc != PROGHEADER_CRC)
     Sys_Error(
-        "progs.dat system vars have been modified, progdefs.h is out of date");
+        "progs.dat system vars have been modified, progdefs.h is out of date (wanted %d, got %d)", PROGHEADER_CRC, progs->crc);
 
   pr_functions = (dfunction_t *)((byte *)progs + progs->ofs_functions);
   pr_strings = (char *)progs + progs->ofs_strings;

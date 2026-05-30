@@ -12,8 +12,10 @@
                 "26998",
                 "-width",
                 "1280",
+                // "2560",
                 "-height",
                 "800",
+                // "1440",
                 "-fullscreen"
             ],
             "cwd": "${workspaceFolder}/WinQuake"
@@ -38,8 +40,8 @@
             "name": "Debug (Linux in Docker)",
             "type": "lldb",
             "request": "launch",
-            // "preLaunchTask": "Build and run (Linux in Docker)",
-            // "postDebugTask": "Stop (Linux in Docker)",
+            "preLaunchTask": "Build and run (Linux in Docker)",
+            "postDebugTask": "Stop (Linux in Docker)",
             "program": "${workspaceFolder}/WinQuake/build-docker/Quake",
             "args": [
                 "-dedicated",

@@ -138,7 +138,6 @@ typedef struct
 	string_t	noise1;
 	string_t	noise2;
 	string_t	noise3;
-	float id;
 } entvars_t;
 
 #define PROGHEADER_CRC 5927

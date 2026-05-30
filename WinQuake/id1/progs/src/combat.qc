@@ -73,17 +73,17 @@ Killed
 */
 void(entity targ, entity attacker) Killed =
 {
-	entity oself;
+	local entity oself;
 
 	oself = self;
 	self = targ;
 
 	if (self.health < -99)
-		self.health = -99; // don't let sbar look bad if a player
+		self.health = -99;		// don't let sbar look bad if a player
 
 	if (self.movetype == MOVETYPE_PUSH || self.movetype == MOVETYPE_NONE)
-	{ // doors, triggers, etc
-		self.th_die();
+	{	// doors, triggers, etc
+		self.th_die ();
 		self = oself;
 		return;
 	}
@@ -94,7 +94,7 @@ void(entity targ, entity attacker) Killed =
 	if (self.flags & FL_MONSTER)
 	{
 		killed_monsters = killed_monsters + 1;
-		WriteByte(MSG_ALL, SVC_KILLEDMONSTER);
+		WriteByte (MSG_ALL, SVC_KILLEDMONSTER);
 	}
 
 	ClientObituary(self, attacker);
@@ -103,7 +103,7 @@ void(entity targ, entity attacker) Killed =
 	self.touch = SUB_Null;
 
 	monster_death_use();
-	self.th_die();
+	self.th_die ();
 
 	self = oself;
 };
@@ -119,10 +119,10 @@ This should be the only function that ever reduces health.
 */
 void(entity targ, entity inflictor, entity attacker, float damage) T_Damage=
 {
-	vector dir;
-	entity oldself;
-	float save;
-	float take;
+	local	vector	dir;
+	local	entity	oldself;
+	local	float	save;
+	local	float	take;
 
 	if (!targ.takedamage)
 		return;
@@ -140,7 +140,7 @@ void(entity targ, entity inflictor, entity attacker, float damage) T_Damage=
 	if (save >= targ.armorvalue)
 	{
 		save = targ.armorvalue;
-		targ.armortype = 0; // lost all armor
+		targ.armortype = 0;	// lost all armor
 		targ.items = targ.items - (targ.items & (IT_ARMOR1 | IT_ARMOR2 | IT_ARMOR3));
 	}
 
@@ -158,7 +158,7 @@ void(entity targ, entity inflictor, entity attacker, float damage) T_Damage=
 	}
 
 // figure momentum add
-	if ((inflictor != world) && (targ.movetype == MOVETYPE_WALK))
+	if ( (inflictor != world) && (targ.movetype == MOVETYPE_WALK) )
 	{
 		dir = targ.origin - (inflictor.absmin + inflictor.absmax) * 0.5;
 		dir = normalize(dir);
@@ -172,14 +172,18 @@ void(entity targ, entity inflictor, entity attacker, float damage) T_Damage=
 	{
 		if (self.invincible_sound < time)
 		{
-			sound(targ, CHAN_ITEM, "items/protect3.wav", 1, ATTN_NORM);
+			sound (targ, CHAN_ITEM, "items/protect3.wav", 1, ATTN_NORM);
 			self.invincible_sound = time + 2;
 		}
 		return;
 	}
 
 // team play damage avoidance
-	if ((teamplay == 1) && (targ.team > 0)&&(targ.team == attacker.team))
+//	if ( (teamplay == 1) && (targ.team > 0)&&(targ.team == attacker.team) )
+	if ( (teamplay == 1) && (targ.team > 0) && (targ.team == attacker.team)
+	&& (targ != attacker)
+	&& (attacker.classname == "player")
+	&& (inflictor.classname != "door") )	// because squishing a teammate is still possible
 		return;
 
 // do the damage
@@ -187,7 +191,7 @@ void(entity targ, entity inflictor, entity attacker, float damage) T_Damage=
 
 	if (targ.health <= 0)
 	{
-		Killed(targ, attacker);
+		Killed (targ, attacker);
 		return;
 	}
 
@@ -195,24 +199,25 @@ void(entity targ, entity inflictor, entity attacker, float damage) T_Damage=
 	oldself = self;
 	self = targ;
 
-	if ((self.flags & FL_MONSTER) && attacker != world)
+	if ( (self.flags & FL_MONSTER) && attacker != world)
 	{
-	// get mad unless of the same class(except for soldiers)
+	// get mad unless of the same class (except for soldiers)
 		if (self != attacker && attacker != self.enemy)
 		{
-			if ((self.classname != attacker.classname) || (self.classname == "monster_army" ))
+			if ( (self.classname != attacker.classname)
+			|| (self.classname == "monster_army" ) )
 			{
 				if (self.enemy.classname == "player")
 					self.oldenemy = self.enemy;
 				self.enemy = attacker;
-				FoundTarget();
+				FoundTarget ();
 			}
 		}
 	}
 
 	if (self.th_pain)
 	{
-		self.th_pain(attacker, take);
+		self.th_pain (attacker, take);
 	// nightmare mode monsters don't go into pain frames often
 		if (skill == 3)
 			self.pain_finished = time + 5;
@@ -228,9 +233,9 @@ T_RadiusDamage
 */
 void(entity inflictor, entity attacker, float damage, entity ignore) T_RadiusDamage =
 {
-	float points;
-	entity head;
-	vector org;
+	local	float 	points;
+	local	entity	head;
+	local	vector	org;
 
 	head = findradius(inflictor.origin, damage+40);
 
@@ -241,7 +246,7 @@ void(entity inflictor, entity attacker, float damage, entity ignore) T_RadiusDam
 			if (head.takedamage)
 			{
 				org = head.origin + (head.mins + head.maxs)*0.5;
-				points = 0.5*vlen(inflictor.origin - org);
+				points = 0.5*vlen (inflictor.origin - org);
 				if (points < 0)
 					points = 0;
 				points = damage - points;
@@ -249,12 +254,12 @@ void(entity inflictor, entity attacker, float damage, entity ignore) T_RadiusDam
 					points = points * 0.5;
 				if (points > 0)
 				{
-					if (CanDamage(head, inflictor))
-					{ // shambler takes half damage from all explosions
+					if (CanDamage (head, inflictor))
+					{	// shambler takes half damage from all explosions
 						if (head.classname == "monster_shambler")
-							T_Damage(head, inflictor, attacker, points*0.5);
+							T_Damage (head, inflictor, attacker, points*0.5);
 						else
-							T_Damage(head, inflictor, attacker, points);
+							T_Damage (head, inflictor, attacker, points);
 					}
 				}
 			}
@@ -270,8 +275,8 @@ T_BeamDamage
 */
 void(entity attacker, float damage) T_BeamDamage =
 {
-	float points;
-	entity head;
+	local	float 	points;
+	local	entity	head;
 
 	head = findradius(attacker.origin, damage+40);
 
@@ -279,7 +284,7 @@ void(entity attacker, float damage) T_BeamDamage =
 	{
 		if (head.takedamage)
 		{
-			points = 0.5*vlen(attacker.origin - head.origin);
+			points = 0.5*vlen (attacker.origin - head.origin);
 			if (points < 0)
 				points = 0;
 			points = damage - points;
@@ -287,16 +292,15 @@ void(entity attacker, float damage) T_BeamDamage =
 				points = points * 0.5;
 			if (points > 0)
 			{
-				if (CanDamage(head, attacker))
+				if (CanDamage (head, attacker))
 				{
 					if (head.classname == "monster_shambler")
-						T_Damage(head, attacker, attacker, points*0.5);
+						T_Damage (head, attacker, attacker, points*0.5);
 					else
-						T_Damage(head, attacker, attacker, points);
+						T_Damage (head, attacker, attacker, points);
 				}
 			}
 		}
 		head = head.chain;
 	}
 };
-
