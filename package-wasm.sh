@@ -18,9 +18,9 @@ docker build --platform="linux/${desired_arch}" -t "${image_2}" -f ./Dockerfile.
 docker build --platform="linux/${desired_arch}" -t "${image_3}" -f ./Dockerfile.node .
 
 if [[ "${PUSH}" == "1" ]]; then
-	docker image push "${image_1}"
-	docker image push "${image_2}"
-	docker image push "${image_3}"
+	docker image push --platform="linux/${desired_arch}" "${image_1}"
+	docker image push --platform="linux/${desired_arch}" "${image_2}"
+	docker image push --platform="linux/${desired_arch}" "${image_3}"
 fi
 
 echo -e "\ndone"

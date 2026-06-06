@@ -117,8 +117,8 @@ See [original README](./readme.txt) and [original LICENCE](./gnu.txt)
 
 ```shell
 # for deploying Docker-built Linux Quake server to Kubernetes
-ARCH=amd64 ./build-docker.sh && IMAGE=initialed85/quake:latest PUSH=1 ./package-docker.sh
+ARCH=amd64 ./build-docker.sh && PUSH=1 ./package-docker.sh
 
 # for deploying native-built WASM Quake server to Kubernetes
-ARCH=amd64 ./build-wasm.sh && IMAGE_1=initialed85/quake-wasm-nginx:latest IMAGE_2=initialed85/quake-ws-server:latest PUSH=1 ./package-wasm.sh
+ARCH=amd64 ./build-wasm.sh && ARCH=amd64 PUSH=1 ./package-wasm.sh
 ```
