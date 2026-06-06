@@ -155,6 +155,8 @@ void Sys_Init(void) {
 }
 
 void Sys_Error(char *error, ...) {
+  fflush(stdout);
+  
   va_list argptr;
   char string[1024];
 

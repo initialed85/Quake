@@ -28,6 +28,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <fcntl.h>
 #include "quakedef.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 int con_linewidth;
 
 float con_cursorspeed = 4;
@@ -578,6 +582,10 @@ void Con_NotifyBox(char *text) {
   key_dest = key_console;
 
   do {
+#ifdef __EMSCRIPTEN__
+    emscripten_sleep(1);
+#endif
+
     t1 = Sys_FloatTime();
     SCR_UpdateScreen();
     Sys_SendKeyEvents();

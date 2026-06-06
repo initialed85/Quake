@@ -55,7 +55,7 @@ EM_BOOL _websocket_onopen(int eventType,
                           void *userData) {
   websocket_t *self = (websocket_t *)userData;
 
-  printf("websockets.c %s : onopen\n", self->srcstr);
+  printf("websockets.c %u : onopen\n", self->id);
 
   self->is_connected = true;
 
@@ -80,7 +80,7 @@ EM_BOOL _websocket_onerror(int eventType,
                            void *userData) {
   websocket_t *self = (websocket_t *)userData;
 
-  printf("websockets.c %s : onerror\n", self->srcstr);
+  printf("websockets.c %u : onerror\n", self->id);
 
   return EM_TRUE;
 }
@@ -90,7 +90,7 @@ EM_BOOL _websocket_onclose(int eventType,
                            void *userData) {
   websocket_t *self = (websocket_t *)userData;
 
-  printf("websockets.c %s : onclose\n", self->srcstr);
+  printf("websockets.c %u : onclose\n", self->id);
 
   self->sock = 0;
   self->is_connected = false;
@@ -104,7 +104,7 @@ _websocket_onmessage(int eventType,
                      void *userData) {
   websocket_t *self = (websocket_t *)userData;
 
-  // printf("websockets.c %s : onmessage; read %d bytes\n", self->srcstr,
+  // printf("websockets.c %u : onmessage; read %d bytes\n", self->id,
   //        websocketEvent->numBytes);
 
   int delta = self->messages.write_index - self->messages.read_index;
@@ -162,15 +162,24 @@ _websocket_onmessage(int eventType,
   return EM_TRUE;
 }
 
+uint32_t next_id = 1;
+
 // warning: this allocates websocket_t *self for you; it's on you to free it
 // when you're done!
 websocket_t *websocket_init() {
   websocket_t *self = calloc(1, sizeof(websocket_t));
 
+  self->buf = calloc(MAX_WS_MESSAGE_SIZE, sizeof(char));
+
+  self->id = next_id;
+  next_id++;
+
   int i = 0;
   for (i = 0; i < MAX_WS_MESSAGES; i++) {
     self->messages.messages[i].length = -1;
   }
+
+  printf("websockets.c %u: websocket_init\n", self->id);
 
   return self;
 }
@@ -181,10 +190,10 @@ int websocket_open(websocket_t *self, const char *url, struct qsockaddr *src) {
   char srcstr[32];
   addr_to_string(src, srcstr);
 
-  if (self == NULL) {
-    printf("websockets.c %s : websocket_open; error - cannot open; self "
+  if (self == NULL || self->id <= 0) {
+    printf("websockets.c %u : websocket_open; error - cannot open; self "
            "unexpectedly NULL\n",
-           srcstr);
+           self->id);
     return -1;
   }
 
@@ -197,9 +206,9 @@ int websocket_open(websocket_t *self, const char *url, struct qsockaddr *src) {
   }
 
   if (!emscripten_websocket_is_supported()) {
-    printf("websockets.c %s : websocket_open; error - cannot open; emscripten "
+    printf("websockets.c %u : websocket_open; error - cannot open; emscripten "
            "says WebSockets aren't available\n",
-           srcstr);
+           self->id);
     return -1;
   }
 
@@ -211,11 +220,11 @@ int websocket_open(websocket_t *self, const char *url, struct qsockaddr *src) {
 
   self->url = url;
   self->src = src;
-  memcpy(self->srcstr, srcstr, sizeof(struct qsockaddr));
-
-  if (self->buf == NULL) {
-    self->buf = calloc(MAX_WS_MESSAGE_SIZE, sizeof(char));
-  }
+  printf("self->srcstr before: %p | %s\n", self->srcstr, self->srcstr);
+  printf("self->buf before: %p | %s\n", self->buf, self->buf);
+  memcpy(self->srcstr, srcstr, 22 * sizeof(char));
+  printf("self->srcstr after: %p | %s\n", self->srcstr, self->srcstr);
+  printf("self->buf after: %p | %s\n", self->buf, self->buf);
 
   self->is_connected = false;
 
@@ -243,28 +252,28 @@ int websocket_open(websocket_t *self, const char *url, struct qsockaddr *src) {
   emscripten_websocket_set_onmessage_callback(self->sock, (void *)self,
                                               _websocket_onmessage);
 
-  printf("websockets.c %s : websocket_open; opening %s as %s...\n",
-         self->srcstr, url, addr_to_string_static(self->src));
+  printf("websockets.c %u : websocket_open; opening %s as %s...\n",
+         self->id, url, addr_to_string_static(self->src));
 
   return 0;
 };
 
 int websocket_close(websocket_t *self) {
-  if (self == NULL) {
-    printf("websockets.c %s : websocket_close; error - cannot close; self "
+  if (self == NULL || self->id <= 0) {
+    printf("websockets.c %u : websocket_close; error - cannot close; self "
            "unexpectedly NULL\n",
-           self->srcstr);
+           self->id);
     return 1;
   }
 
   if (self->sock < 1) {
-    printf("websockets.c %s : websocket_close; error - cannot close; sock not "
+    printf("websockets.c %u : websocket_close; error - cannot close; sock not "
            "initialized!\n",
-           self->srcstr);
+           self->id);
     return 1;
   }
 
-  printf("websockets.c %s : websocket_close\n", self->srcstr);
+  printf("websockets.c %u : websocket_close\n", self->id);
 
   self->should_be_connected = false;
 
@@ -278,33 +287,33 @@ int websocket_write_spoof(websocket_t *self, char *buf, int len,
                           struct qsockaddr *dst, qboolean bridge,
                           qboolean control, struct qsockaddr *src,
                           char *srcstr) {
-  if (self == NULL) {
-    printf("websockets.c %s : websocket_write; error - cannot write; self "
+  if (self == NULL || self->id <= 0) {
+    printf("websockets.c %u : websocket_write; error - cannot write; self "
            "unexpectedly NULL\n",
-           srcstr);
+           self->id);
     return 1;
   }
 
   if (self->sock < 1) {
-    printf("websockets.c %s : websocket_write; error - cannot write; sock not "
+    printf("websockets.c %u : websocket_write; error - cannot write; sock not "
            "initialized!\n",
-           srcstr);
+           self->id);
     return 1;
   }
 
   if (!self->is_connected) {
-    printf("websockets.c %s : websocket_write; error - cannot write; sock yet "
+    printf("websockets.c %u : websocket_write; error - cannot write; sock yet "
            "connected!\n",
-           srcstr);
+           self->id);
     return 1;
   }
 
   if (bridge && control) {
     printf(
-        "websockets.c %s : websocket_write; error - cannot write; both bridge "
+        "websockets.c %u : websocket_write; error - cannot write; both bridge "
         "and control "
         "arguments cannot be set!\n",
-        srcstr);
+        self->id);
     return 1;
   }
 
@@ -333,9 +342,9 @@ int websocket_write_spoof(websocket_t *self, char *buf, int len,
 
   if ((res = emscripten_websocket_send_binary(self->sock, (void *)self->buf,
                                               real_len)) != 0) {
-    printf("websockets.c %s : websocket_write; error - cannot write; unknown "
+    printf("websockets.c %u : websocket_write; error - cannot write; unknown "
            "error %d!\n",
-           srcstr, res);
+           self->id, res);
 
     return 1;
   }
@@ -344,8 +353,8 @@ int websocket_write_spoof(websocket_t *self, char *buf, int len,
   char dststring[22] = {};
   addr_to_string(src, srcstring);
   addr_to_string(dst, dststring);
-  // printf("websockets.c %s : websocket_write; wrote %d bytes (%s -> %s)\n",
-  //        srcstr, len, srcstring, dststring);
+  // printf("websockets.c %u : websocket_write; wrote %d bytes (%s -> %s)\n",
+  //        self->id, len, srcstring, dststring);
 
   return len;
 }
@@ -358,17 +367,17 @@ int websocket_write(websocket_t *self, char *buf, int len,
 
 int websocket_read(websocket_t *self, struct qsockaddr *src,
                    struct qsockaddr *dst, char *buf) {
-  if (self == NULL) {
-    printf("websockets.c %s : websocket_read; error - cannot read; self "
+  if (self == NULL || self->id <= 0) {
+    printf("websockets.c %u : websocket_read; error - cannot read; self "
            "unexpectedly NULL\n",
-           self->srcstr);
+           self->id);
     return -1;
   }
 
   if (self->messages.messages[self->messages.read_index].length < 0) {
-    // printf("websockets.c %s : websocket_read; nothing to read (length =
+    // printf("websockets.c %u : websocket_read; nothing to read (length =
     // -1)\n",
-    //        self->srcstr);
+    //        self->id);
     return -1;
   }
 
@@ -388,8 +397,8 @@ int websocket_read(websocket_t *self, struct qsockaddr *src,
                  srcstring);
   addr_to_string(&self->messages.messages[self->messages.read_index].dst,
                  dststring);
-  // printf("websockets.c %s : websocket_read; read %d bytes (%s -> %s)\n",
-  //        self->srcstr, len, srcstring, dststring);
+  // printf("websockets.c %u : websocket_read; read %d bytes (%s -> %s)\n",
+  //        self->id, len, srcstring, dststring);
 
   self->messages.messages[self->messages.read_index].length = -1;
   self->messages.read_index++;
@@ -398,7 +407,7 @@ int websocket_read(websocket_t *self, struct qsockaddr *src,
 }
 
 int websocket_peek(websocket_t *self) {
-  if (self == NULL) {
+  if (self == NULL || self->id <= 0) {
     printf("websockets.c %s : websocket_peek; error - cannot peek; self "
            "unexpectedly NULL\n",
            self->srcstr);
@@ -406,9 +415,9 @@ int websocket_peek(websocket_t *self) {
   }
 
   if (self->messages.messages[self->messages.read_index].length < 0) {
-    // printf("websockets.c %s : websocket_peek; nothing to peek (length =
+    // printf("websockets.c %u : websocket_peek; nothing to peek (length =
     // -1)\n",
-    //        self->srcstr);
+    //        self->id);
     return -1;
   }
 
@@ -420,26 +429,28 @@ int websocket_peek(websocket_t *self) {
                  srcstring);
   addr_to_string(&self->messages.messages[self->messages.read_index].dst,
                  dststring);
-  // printf("websockets.c %s : websocket_peek; peeked %d bytes (%s -> %s)\n",
-  //        self->srcstr, len, srcstring, dststring);
+  // printf("websockets.c %u : websocket_peek; peeked %d bytes (%s -> %s)\n",
+  //        self->id, len, srcstring, dststring);
 
   return len;
 }
 
 int websocket_free(websocket_t *self) {
-  if (self == NULL) {
+  if (self == NULL || self->id <= 0) {
     return -1;
   }
 
-  // TODO
-  // if (self->src != NULL) {
-  //   free(self->src);
-  // }
+  printf("websockets.c %u : websocket_free\n", self->id);
 
   if (self->buf != NULL) {
+    printf("websockets.c %u : websocket_free; freeing self->buf @ %p\n", self->id, self->buf);
     free(self->buf);
+    self->buf = NULL;
   }
 
+  self->id = -1;
+
+  printf("websockets.c %u : websocket_free; freeing self @ %p\n", self->id, self);
   free(self);
 
   return 0;

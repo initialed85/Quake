@@ -51,6 +51,7 @@ typedef struct edict_s {
 extern dprograms_t *progs;
 extern dfunction_t *pr_functions;
 extern char *pr_strings;
+extern int pr_stringscount;
 extern int pr_stringssize;
 extern ddef_t *pr_globaldefs;
 extern ddef_t *pr_fielddefs;
@@ -90,6 +91,15 @@ void ED_LoadFromFile(char *data);
 edict_t *EDICT_NUM(int n);
 int NUM_FOR_EDICT(edict_t *e);
 
+//============================================================================
+
+extern int PR_StrReprC(char *buf, char *cs);
+extern string_t PR_StrCToQC(char *cs);
+extern char *PR_StrQCToC(string_t qcs);
+extern void PR_StrReprQC(char *buf, string_t qcs);
+
+//============================================================================
+
 #define NEXT_EDICT(e) ((edict_t *)((byte *)e + pr_edict_size))
 
 #define EDICT_TO_PROG(e) ((byte *)e - (byte *)sv.edicts)
@@ -102,13 +112,13 @@ int NUM_FOR_EDICT(edict_t *e);
 #define G_EDICT(o) ((edict_t *)((byte *)sv.edicts + *(int *)&pr_globals[o]))
 #define G_EDICTNUM(o) NUM_FOR_EDICT(G_EDICT(o))
 #define G_VECTOR(o) (&pr_globals[o])
-#define G_STRING(o) (pr_strings + *(string_t *)&pr_globals[o])
+#define G_STRING(o) (PR_StrQCToC(*(string_t *)&pr_globals[o]))
 #define G_FUNCTION(o) (*(func_t *)&pr_globals[o])
 
 #define E_FLOAT(e, o) (((float *)&e->v)[o])
 #define E_INT(e, o) (*(int *)&((float *)&e->v)[o])
 #define E_VECTOR(e, o) (&((float *)&e->v)[o])
-#define E_STRING(e, o) (pr_strings + *(string_t *)&((float *)&e->v)[o])
+#define E_STRING(e, o) (PR_StrQCToC(*(string_t *)&((float *)&e->v)[o]))
 
 extern int type_size[8];
 

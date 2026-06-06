@@ -29,6 +29,7 @@ typedef struct {
 } messages_t;
 
 typedef struct {
+  uint32_t id;
   const char *url;
   struct qsockaddr *src;
   char srcstr[22];

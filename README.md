@@ -41,6 +41,7 @@ server style).
   - [DONE] Fix pointer math segfault to do with warping and odd screen sizes caused by `r_shared.h::MAXHEIGHT`
     and `r_shared.h::MAXWIDTH`
   - [DONE] Fix whatever the pointer hell was going on with `pr_strings`
+    - [DONE] Fix it without just spamming `ED_NewString` everywhere (causing leaks)
 - [DONE] Fix the NAT-related issues in the original UDP net code
   - You can control the port your client will use with the `-port` flag; e.g. if you wanted to run a server and 2 clients all on the same machine:
     - `./Quake -port 26000 +map start`
@@ -51,6 +52,7 @@ server style).
 - [TODO] Fix server search screen not finding all servers
 - [TODO] Fix FrikBot going into some state where it won't attack (probably relates to my workaround hack for runaway loop error)
 - [TODO] Make it so the server can specify some FrikBots to join from the commandline
+- [TODO] Fix bug wherein own name doesn't appear in scoreboard when maxplayers == 32
 
 ## Usage
 

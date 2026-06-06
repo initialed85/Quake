@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 dprograms_t *progs;
 dfunction_t *pr_functions;
 char *pr_strings;
+int pr_stringscount;
 int pr_stringssize;
 ddef_t *pr_fielddefs;
 ddef_t *pr_globaldefs;
@@ -67,6 +68,15 @@ typedef struct {
 } gefv_cache;
 
 static gefv_cache gefvCache[GEFV_CACHESIZE] = {{NULL, ""}, {NULL, ""}};
+
+typedef struct {
+  char *cs;
+  string_t qcs;
+} pr_stritem_t;
+
+#define MAX_QC_STRINGS 65536
+pr_stritem_t pr_stritems[MAX_QC_STRINGS] = {};
+uint16_t next_qc_idx = 0;
 
 /*
 =================
@@ -188,7 +198,7 @@ ddef_t *ED_FindField(char *name) {
 
   for (i = 0; i < progs->numfielddefs; i++) {
     def = &pr_fielddefs[i];
-    if (!strcmp(pr_strings + def->s_name, name))
+    if (!strcmp(PR_StrQCToC(def->s_name), name))
       return def;
   }
   return NULL;
@@ -205,7 +215,7 @@ ddef_t *ED_FindGlobal(char *name) {
 
   for (i = 0; i < progs->numglobaldefs; i++) {
     def = &pr_globaldefs[i];
-    if (!strcmp(pr_strings + def->s_name, name))
+    if (!strcmp(PR_StrQCToC(def->s_name), name))
       return def;
   }
   return NULL;
@@ -222,7 +232,7 @@ dfunction_t *ED_FindFunction(char *name) {
 
   for (i = 0; i < progs->numfunctions; i++) {
     func = &pr_functions[i];
-    if (!strcmp(pr_strings + func->s_name, name))
+    if (!strcmp(PR_StrQCToC(func->s_name), name))
       return func;
   }
   return NULL;
@@ -271,18 +281,18 @@ char *PR_ValueString(etype_t type, eval_t *val) {
 
   switch (type) {
   case ev_string:
-    sprintf(line, "%s", pr_strings + val->string);
+    sprintf(line, "%s", PR_StrQCToC(val->string));
     break;
   case ev_entity:
     sprintf(line, "entity %i", NUM_FOR_EDICT(PROG_TO_EDICT(val->edict)));
     break;
   case ev_function:
     f = pr_functions + val->function;
-    sprintf(line, "%s()", pr_strings + f->s_name);
+    sprintf(line, "%s()", PR_StrQCToC(f->s_name));
     break;
   case ev_field:
     def = ED_FieldAtOfs(val->_int);
-    sprintf(line, ".%s", pr_strings + def->s_name);
+    sprintf(line, ".%s", PR_StrQCToC(def->s_name));
     break;
   case ev_void:
     sprintf(line, "void");
@@ -322,18 +332,18 @@ char *PR_UglyValueString(etype_t type, eval_t *val) {
 
   switch (type) {
   case ev_string:
-    sprintf(line, "%s", pr_strings + val->string);
+    sprintf(line, "%s", PR_StrQCToC(val->string));
     break;
   case ev_entity:
     sprintf(line, "%i", NUM_FOR_EDICT(PROG_TO_EDICT(val->edict)));
     break;
   case ev_function:
     f = pr_functions + val->function;
-    sprintf(line, "%s", pr_strings + f->s_name);
+    sprintf(line, "%s", PR_StrQCToC(f->s_name));
     break;
   case ev_field:
     def = ED_FieldAtOfs(val->_int);
-    sprintf(line, "%s", pr_strings + def->s_name);
+    sprintf(line, "%s", PR_StrQCToC(def->s_name));
     break;
   case ev_void:
     sprintf(line, "void");
@@ -373,7 +383,7 @@ char *PR_GlobalString(int ofs) {
     sprintf(line, "%i(???)", ofs);
   else {
     s = PR_ValueString(def->type, val);
-    sprintf(line, "%i(%s)%s", ofs, pr_strings + def->s_name, s);
+    sprintf(line, "%i(%s)%s", ofs, PR_StrQCToC(def->s_name), s);
   }
 
   i = strlen(line);
@@ -393,7 +403,7 @@ char *PR_GlobalStringNoContents(int ofs) {
   if (!def)
     sprintf(line, "%i(???)", ofs);
   else
-    sprintf(line, "%i(%s)", ofs, pr_strings + def->s_name);
+    sprintf(line, "%i(%s)", ofs, PR_StrQCToC(def->s_name));
 
   i = strlen(line);
   for (; i < 20; i++)
@@ -426,7 +436,7 @@ void ED_Print(edict_t *ed) {
   Con_Printf("\nEDICT %i:\n", NUM_FOR_EDICT(ed));
   for (i = 1; i < progs->numfielddefs; i++) {
     d = &pr_fielddefs[i];
-    name = pr_strings + d->s_name;
+    name = PR_StrQCToC(d->s_name);
     if (name[strlen(name) - 2] == '_')
       continue; // skip _x, _y, _z vars
 
@@ -473,7 +483,7 @@ void ED_Write(FILE *f, edict_t *ed) {
 
   for (i = 1; i < progs->numfielddefs; i++) {
     d = &pr_fielddefs[i];
-    name = pr_strings + d->s_name;
+    name = PR_StrQCToC(d->s_name);
     if (name[strlen(name) - 2] == '_')
       continue; // skip _x, _y, _z vars
 
@@ -593,7 +603,7 @@ void ED_WriteGlobals(FILE *f) {
     if (type != ev_string && type != ev_float && type != ev_entity)
       continue;
 
-    name = pr_strings + def->s_name;
+    name = PR_StrQCToC(def->s_name);
     fprintf(f, "\"%s\" ", name);
     fprintf(f, "\"%s\"\n",
             PR_UglyValueString(type, (eval_t *)&pr_globals[def->ofs]));
@@ -688,7 +698,8 @@ qboolean ED_ParseEpair(void *base, ddef_t *key, char *s) {
 
   switch (key->type & ~DEF_SAVEGLOBAL) {
   case ev_string:
-    *(string_t *)d = ED_NewString(s) - pr_strings;
+    // ED_NewString required because in some cases s is a local of the caller's
+    *(string_t *)d = PR_StrCToQC(ED_NewString(s));
     break;
 
   case ev_float:
@@ -858,10 +869,12 @@ void ED_LoadFromFile(char *data) {
     if (com_token[0] != '{')
       Sys_Error("ED_LoadFromFile: found %s when expecting {", com_token);
 
-    if (!ent)
+    if (!ent) {
       ent = EDICT_NUM(0);
-    else
+    } else {
       ent = ED_Alloc();
+    }
+
     data = ED_ParseEdict(data, ent);
 
     // remove things from different skill levels or deathmatch
@@ -893,7 +906,7 @@ void ED_LoadFromFile(char *data) {
     }
 
     // look for the spawn function
-    func = ED_FindFunction(pr_strings + ent->v.classname);
+    func = ED_FindFunction(PR_StrQCToC(ent->v.classname));
 
     if (!func) {
       Con_Printf("No spawn function for:\n");
@@ -941,17 +954,56 @@ void PR_LoadProgs(void) {
     Sys_Error("progs.dat has wrong version number (%i should be %i)",
               progs->version, PROG_VERSION);
   if (progs->crc != PROGHEADER_CRC)
-    Sys_Error(
-        "progs.dat system vars have been modified, progdefs.h is out of date (wanted %d, got %d)", PROGHEADER_CRC, progs->crc);
+    Sys_Error("progs.dat system vars have been modified, progdefs.h is out of "
+              "date (wanted %d, got %d)",
+              PROGHEADER_CRC, progs->crc);
+
+  pr_strings = (char *)progs + progs->ofs_strings;
+  printf("\nprogs->ofs_strings: %d\n\n", progs->ofs_strings);
+  printf("pr_strings (%d strings at %p): ...\n\n", progs->numstrings,
+         pr_strings);
+
+  pr_stringscount = 0;
+  pr_stringssize = 0;
+
+  char pr_string[65536] = {};
+  char pr_string_repr[65536] = {};
+
+  while (pr_stringscount < progs->numstrings) {
+    strcpy(pr_string, pr_strings + pr_stringssize);
+
+    PR_StrReprC(pr_string_repr, pr_string);
+    printf("pr_strings + %#x (pr_strings[%d]) == %#lx == (%lu) %s\n",
+           pr_stringssize, pr_stringscount, (long)pr_strings + pr_stringssize,
+           strlen(pr_string), pr_string_repr);
+
+    pr_stringscount++;
+    pr_stringssize += strlen(pr_string) + 1; // including null terminator
+  }
+
+  printf("\npr_strings (%d strings at %p -> %#lx); pr_stringscount: %d (max: "
+         "%d), pr_stringssize: %d (max: %d)\n",
+         progs->numstrings, pr_strings, (long)pr_strings + pr_stringssize,
+         pr_stringscount, pr_stringscount - 1, pr_stringssize,
+         pr_stringssize - 1);
 
   pr_functions = (dfunction_t *)((byte *)progs + progs->ofs_functions);
-  pr_strings = (char *)progs + progs->ofs_strings;
-  pr_stringssize = progs->numstrings;
+  printf("\nprogs->ofs_functions: %d\n", progs->ofs_functions);
+  dfunction_t pr_function;
+  for (i = 0; i < progs->numfunctions; i++) {
+    pr_function = pr_functions[i];
+    printf("pr_function[%d] = pr_strings[%d] => %s\n", i, pr_function.s_name,
+           PR_StrQCToC(pr_function.s_name));
+  }
+
   pr_globaldefs = (ddef_t *)((byte *)progs + progs->ofs_globaldefs);
+
   pr_fielddefs = (ddef_t *)((byte *)progs + progs->ofs_fielddefs);
+
   pr_statements = (dstatement_t *)((byte *)progs + progs->ofs_statements);
 
   pr_global_struct = (globalvars_t *)((byte *)progs + progs->ofs_globals);
+
   pr_globals = (float *)pr_global_struct;
 
   pr_edict_size = progs->entityfields * 4 + sizeof(edict_t) - sizeof(entvars_t);
@@ -1030,4 +1082,196 @@ int NUM_FOR_EDICT(edict_t *e) {
   if (b < 0 || b >= sv.num_edicts)
     Sys_Error("NUM_FOR_EDICT: bad pointer");
   return b;
+}
+
+/*
+===============
+PR_StrReprC
+
+Populate buf with escaped representation of s, return strlen of buf
+===============
+*/
+int PR_StrReprC(char *buf, char *s) {
+  int i = 0;
+  int j = 0;
+  int k = 0;
+  char c = 0;
+  char temp[1024] = {};
+
+  buf[j] = '"';
+  j++;
+
+  for (i = 0; i < strlen(s); i++) {
+    c = s[i];
+
+    if (c == '\x00') {
+      break;
+    } else if (c < 32 || c > 127) {
+      switch (c) {
+      case '\n':
+        sprintf(temp, "\\n");
+        break;
+
+      case '\r':
+        sprintf(temp, "\\r");
+        break;
+
+      case '\t':
+        sprintf(temp, "\\t");
+        break;
+
+      default:
+        sprintf(temp, "\\x%x", (int)c);
+      }
+
+      for (k = 0; k < strlen(temp); k++) {
+        buf[j] = temp[k];
+        j++;
+      }
+
+      continue;
+    } else if (c == '"') {
+      buf[j] = '\\';
+      j++;
+      buf[j] = c;
+    } else {
+      buf[j] = c;
+    }
+
+    j++;
+  }
+
+  buf[j] = '"';
+  j++;
+
+  buf[j] = '\x00';
+  j++;
+
+  return strlen(temp);
+}
+
+/*
+===============
+PR_StrCToQC
+
+Return a positive string_t when cs is a pointer derived from pr_strings (progs),
+otherwise return a unique negative string_t when cs is an unknown string
+(dynamic)
+===============
+*/
+string_t PR_StrCToQC(char *cs) {
+  char buf[1024] = {};
+  char err[1024] = {};
+  uint16_t i;
+  ptrdiff_t qcs;
+
+  qcs = cs - pr_strings;
+
+  if (qcs < 0 || qcs > pr_stringscount - 1) {
+    i = next_qc_idx;
+
+    if (i >= MAX_QC_STRINGS - 1) {
+      sprintf(err,
+              "ERROR in PR_StrQCToC: %ld + %ld = %ld (?) => assertion failed "
+              "(pr_stritems cursor > %d by %d)\n",
+              qcs, (long)pr_strings, (long)qcs, MAX_QC_STRINGS - 1,
+              i - MAX_QC_STRINGS - 1);
+      printf(err);
+      fflush(stdout);
+      Sys_Error(err);
+    }
+
+    qcs = -i - 1;
+    pr_stritems[i].cs = cs;
+    pr_stritems[i].qcs = qcs;
+    next_qc_idx++;
+
+    if (next_qc_idx < i) {
+      sprintf(
+          err,
+          "WARNING in PR_StrQCToC: %ld + %ld = %ld (?) => rollover occurred "
+          "(i = %d, next_qc_idx = %d)\n",
+          qcs, (long)pr_strings, (long)qcs, i, next_qc_idx);
+      Sys_Printf(err);
+    }
+
+    // PR_StrReprC(buf, cs);
+    // printf("PR_StrCToQC: %s (%ld) - %ld = %ld (dynamic)\n", buf, (long)cs,
+    //        (long)pr_strings, (long)qcs);
+
+    return (string_t)qcs;
+  }
+
+  // PR_StrReprC(buf, cs);
+  // printf("PR_StrCToQC: %s (%ld) - %ld = %ld (progs)\n", buf, (long)cs,
+  //        (long)pr_strings, (long)qcs);
+
+  return (string_t)qcs;
+}
+
+/*
+===============
+PR_StrQCToC
+
+Returns the pr_strings-derived char * for qcs when qcs is positive (progs),
+otherwise return the applicable previously-unknown char * when qcs is negative
+(dynamic)
+===============
+*/
+char *PR_StrQCToC(string_t qcs) {
+  char buf[1024] = {};
+  char err[1024] = {};
+  int i;
+  char *cs;
+
+  if (qcs < 0 || qcs > pr_stringscount - 1) {
+    if (qcs < 0) {
+      i = (-qcs) - 1;
+
+      if (pr_stritems[i].qcs == qcs) {
+        cs = pr_stritems[i].cs;
+
+        // PR_StrReprC(buf, cs);
+        // printf("PR_StrQCToC: %d + %ld = %ld (dynamic) => %s\n", qcs,
+        //        (long)pr_strings, (long)pr_strings + qcs, buf);
+
+        return cs;
+      }
+
+      sprintf(err,
+              "ERROR in PR_StrQCToC: %d + %ld = %ld (?) => qcs match "
+              "assertion failed (wanted: %d, got: %d)\n",
+              qcs, (long)pr_strings, (long)qcs, qcs, pr_stritems[i].qcs);
+      printf(err);
+      fflush(stdout);
+      Sys_Error(err);
+    }
+
+    int d = qcs < 0 ? 0 - qcs : pr_stringscount - 1 - qcs;
+    sprintf(err,
+            "ERROR in PR_StrQCToC: %d + %ld = %ld (?) => out of range "
+            "by %d\n",
+            qcs, (long)pr_strings, (long)qcs, d);
+    printf(err);
+    fflush(stdout);
+    Sys_Error(err);
+  }
+
+  cs = pr_strings + qcs;
+
+  // PR_StrReprC(buf, cs);
+  // printf("PR_StrQCToC: %d + %ld = %ld (progs) => %s\n", qcs,
+  // (long)pr_strings,
+  //        (long)pr_strings + qcs, buf);
+
+  return cs;
+}
+
+/*
+===============
+PR_StrReprQC
+===============
+*/
+void PR_StrReprQC(char *buf, string_t qcs) {
+  PR_StrReprC(buf, PR_StrQCToC(qcs));
 }

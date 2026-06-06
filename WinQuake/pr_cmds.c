@@ -60,7 +60,7 @@ void PF_error(void) {
 
   s = PF_VarString(0);
   Con_Printf("======SERVER ERROR in %s:\n%s\n",
-             pr_strings + pr_xfunction->s_name, s);
+             PR_StrQCToC(pr_xfunction->s_name), s);
   ed = PROG_TO_EDICT(pr_global_struct->self);
   ED_Print(ed);
 
@@ -83,7 +83,7 @@ void PF_objerror(void) {
 
   s = PF_VarString(0);
   Con_Printf("======OBJECT ERROR in %s:\n%s\n",
-             pr_strings + pr_xfunction->s_name, s);
+             PR_StrQCToC(pr_xfunction->s_name), s);
   ed = PROG_TO_EDICT(pr_global_struct->self);
   ED_Print(ed);
   ED_Free(ed);
@@ -235,8 +235,7 @@ void PF_setmodel(void) {
   if (!*check)
     PR_RunError("no precache: %s\n", m);
 
-  // e->v.model = ED_NewString(m) - pr_strings;
-  e->v.model = m - pr_strings;
+  e->v.model = PR_StrCToQC(m);
   e->v.modelindex = i; // SV_ModelIndex (m);
 
   mod = sv.models[(int)e->v.modelindex]; // Mod_ForName (m, true);
@@ -875,8 +874,7 @@ void PF_ftos(void) {
   else
     sprintf(pr_string_temp, "%5.1f", v);
 
-  // G_INT(OFS_RETURN) = ED_NewString(pr_string_temp) - pr_strings;
-  G_INT(OFS_RETURN) = pr_string_temp - pr_strings;
+  G_INT(OFS_RETURN) = PR_StrCToQC(pr_string_temp);
 }
 
 void PF_fabs(void) {
@@ -888,13 +886,13 @@ void PF_fabs(void) {
 void PF_vtos(void) {
   sprintf(pr_string_temp, "'%5.1f %5.1f %5.1f'", G_VECTOR(OFS_PARM0)[0],
           G_VECTOR(OFS_PARM0)[1], G_VECTOR(OFS_PARM0)[2]);
-  G_INT(OFS_RETURN) = pr_string_temp - pr_strings;
+  G_INT(OFS_RETURN) = PR_StrCToQC(pr_string_temp);
 }
 
 #ifdef QUAKE2
 void PF_etos(void) {
   sprintf(pr_string_temp, "entity %i", G_EDICTNUM(OFS_PARM0));
-  G_INT(OFS_RETURN) = pr_string_temp - pr_strings;
+  G_INT(OFS_RETURN) = PR_StrCToQC(pr_string_temp);
 }
 #endif
 
@@ -1435,7 +1433,7 @@ void PF_makestatic(void) {
 
   MSG_WriteByte(&sv.signon, svc_spawnstatic);
 
-  MSG_WriteByte(&sv.signon, SV_ModelIndex(pr_strings + ent->v.model));
+  MSG_WriteByte(&sv.signon, SV_ModelIndex(PR_StrQCToC(ent->v.model)));
 
   MSG_WriteByte(&sv.signon, ent->v.frame);
   MSG_WriteByte(&sv.signon, ent->v.colormap);

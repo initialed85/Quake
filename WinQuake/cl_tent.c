@@ -218,8 +218,7 @@ void CL_ParseTEnt(void) {
 
     // PGM 01/21/97
   case TE_BEAM: // grappling hook beam
-    // TODO: doesn't seem to be included- and the one that came with FrikBot is incompatible?
-    // CL_ParseBeam(Mod_ForName("progs/beam.mdl", true));
+    // TODO(initialed85): progs/beam.mdl seem to be included- and the one that came with FrikBot is incompatible?
     CL_ParseBeam(Mod_ForName("progs/bolt.mdl", true));
     break;
     // PGM 01/21/97

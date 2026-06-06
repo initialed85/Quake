@@ -395,7 +395,7 @@ void *Hunk_AllocName(int size, char *name) {
   h->sentinal = HUNK_SENTINAL;
   Q_strncpy(h->name, name, 8);
 
-  printf("Hunk_AllocName: size: %d, hunk_size: %d, hunk_low_used: %d, hunk_high_used: %d, name: %s\n", size, hunk_size, hunk_low_used, hunk_high_used, name);
+  // printf("Hunk_AllocName: size: %d, hunk_size: %d, hunk_low_used: %d, hunk_high_used: %d, name: %s\n", size, hunk_size, hunk_low_used, hunk_high_used, name);
 
   return (void *)(h + 1);
 }
@@ -415,7 +415,7 @@ void Hunk_FreeToLowMark(int mark) {
   memset(hunk_base + mark, 0, hunk_low_used - mark);
   hunk_low_used = mark;
 
-  printf("Hunk_FreeToLowMark: mark: %d, hunk_size: %d, hunk_low_used: %d, hunk_high_used: %d\n", mark, hunk_size, hunk_low_used, hunk_high_used);
+  // printf("Hunk_FreeToLowMark: mark: %d, hunk_size: %d, hunk_low_used: %d, hunk_high_used: %d\n", mark, hunk_size, hunk_low_used, hunk_high_used);
 }
 
 int Hunk_HighMark(void) {
@@ -437,7 +437,7 @@ void Hunk_FreeToHighMark(int mark) {
   memset(hunk_base + hunk_size - hunk_high_used, 0, hunk_high_used - mark);
   hunk_high_used = mark;
 
-  printf("Hunk_FreeToHighMark: mark: %d, hunk_size: %d, hunk_low_used: %d, hunk_high_used: %d\n", mark, hunk_size, hunk_low_used, hunk_high_used);
+  // printf("Hunk_FreeToHighMark: mark: %d, hunk_size: %d, hunk_low_used: %d, hunk_high_used: %d\n", mark, hunk_size, hunk_low_used, hunk_high_used);
 }
 
 /*

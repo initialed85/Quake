@@ -31,7 +31,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define X11_VERSION 1.10
 #define SDL2_VERSION 0.01 // added by initialed85
 
-// define	PARANOID			// speed sapping error checking
+// #define	PARANOID			// speed sapping error checking
 
 #ifdef QUAKE2
 #define GAMENAME "id1" // directory to look in by default
@@ -45,6 +45,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <stdio.h>
 #include <stdlib.h>
 #include <setjmp.h>
+#include <stddef.h>
 
 #if defined(_WIN32) && !defined(WINDED)
 

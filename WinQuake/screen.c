@@ -707,6 +707,10 @@ int SCR_ModalMessage(char *text) {
   S_ClearBuffer(); // so dma doesn't loop current sound
 
   do {
+#ifdef __EMSCRIPTEN__
+    emscripten_sleep(1);
+#endif
+
     key_count = -1; // wait for a key down and up
     Sys_SendKeyEvents();
   } while (key_lastpress != 'y' && key_lastpress != 'n' &&

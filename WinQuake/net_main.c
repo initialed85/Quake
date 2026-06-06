@@ -22,6 +22,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include "net_vcr.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 qsocket_t *net_activeSockets = NULL;
 qsocket_t *net_freeSockets = NULL;
 int net_numsockets = 0;
@@ -363,8 +367,13 @@ qsocket_t *NET_Connect(char *host) {
   slistSilent = host ? true : false;
   NET_Slist_f();
 
-  while (slistInProgress)
+  while (slistInProgress) {
+#ifdef __EMSCRIPTEN__
+    emscripten_sleep(1);
+#endif
+
     NET_Poll();
+  }
 
   if (host == NULL) {
     if (hostCacheCount != 1)
@@ -849,6 +858,10 @@ void NET_Poll(void) {
   SetNetTime();
 
   for (pp = pollProcedureList; pp; pp = pp->next) {
+#ifdef __EMSCRIPTEN__
+    emscripten_sleep(1);
+#endif
+
     if (pp->nextTime > net_time)
       break;
 

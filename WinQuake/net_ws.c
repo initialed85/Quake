@@ -159,7 +159,9 @@ int WS_OpenSocket(int port) {
 
     websockets[i] = websocket_init();
     if (websocket_open(websockets[i], websocketurl, thisaddr) != 0) {
-      websocket_free(websockets[i]);
+      if (websocket_close(websockets[i]) == 0) {
+        websocket_free(websockets[i]);
+      }
       websockets[i] = NULL;
       return -1;
     }
@@ -184,8 +186,10 @@ int WS_CloseSocket(int socket) {
   int i = socket - SOCKFD_OFFSET;
 
   if (websockets[i] != NULL) {
-    websocket_close(websockets[i]);
-    websocket_free(websockets[i]);
+    if (websocket_close(websockets[i]) == 0) {
+      websocket_free(websockets[i]);
+    }
+    websockets[i] = NULL;
     Con_Printf("WS_CloseSocket : socket = %d, i = %d\n", socket, i);
   } else {
     Con_Printf("WS_CloseSocket : socket = %d, i = %d (was already closed?)\n",

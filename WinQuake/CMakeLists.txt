@@ -129,17 +129,30 @@ if (EMSCRIPTEN)
     set(DRY_CFLAGS ${DRY_CFLAGS}
       # "-fsanitize=address,undefined,null"
       "-gsource-map"
+      "--source-map-base=/"
     )
 
     set(DRY_LDFLAGS ${DRY_LDFLAGS}
       # "-fsanitize=address,undefined,null"
       "-Wno-limited-postlink-optimizations"
       "-gsource-map"
-      "--source-map-base=./"
+      "--source-map-base=/"
+      "-sSOURCE_MAP_PREFIXES=/${PROJECT_SOURCE_DIR}/=/WinQuake/"
       "-sSTACK_OVERFLOW_CHECK=2"
       "-sCHECK_NULL_WRITES=1"
       "-sASSERTIONS=2"
       "-sGL_DEBUG=1"
+    )
+  else()
+    set(DRY_CFLAGS ${DRY_CFLAGS}
+      "-gsource-map"
+      "--source-map-base=/"
+    )
+
+    set(DRY_LDFLAGS ${DRY_LDFLAGS}
+      "-gsource-map"
+      "--source-map-base=/"
+      "-sSOURCE_MAP_PREFIXES=/${PROJECT_SOURCE_DIR}/=/WinQuake/"
     )
   endif()
 else()
