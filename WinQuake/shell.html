@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en-us">
   <head>
     <meta charset="utf-8" />
@@ -34,7 +34,7 @@
       const canvasElement = document.getElementById("canvas");
 
       canvasElement.addEventListener("webglcontextlost", (e) => {
-        alert("WebGL context lost. You will need to reload the page."), e.preventDefault();
+        (alert("WebGL context lost. You will need to reload the page."), e.preventDefault());
       });
 
       //
@@ -65,7 +65,7 @@
       const currentAspectRatio = width / height;
 
       console.log(
-        `width: ${width}, height: ${height}, desiredAspectRatio: ${desiredAspectRatio}, currentAspectRatio: ${currentAspectRatio}`
+        `width: ${width}, height: ${height}, desiredAspectRatio: ${desiredAspectRatio}, currentAspectRatio: ${currentAspectRatio}`,
       );
 
       //
@@ -127,9 +127,13 @@
       let arguments = [];
 
       URL.parse(window.location.href.replaceAll("+", "%2b"))?.searchParams?.forEach((v, k) => {
-        arguments.push(k);
-        arguments.push(v);
+        arguments.push(...k.split(" "));
+        arguments.push(...v.split(" "));
       });
+
+      arguments = arguments.filter((x) => x.trim().length);
+
+      console.log(`arguments (before): ${JSON.stringify(arguments)}`);
 
       if (!arguments.includes("-width")) {
         arguments.push("-width", width);
@@ -145,18 +149,20 @@
       arguments = arguments.filter((x) => x !== "clientid");
       arguments.push("-clientid", clientId);
 
-      arguments = arguments.filter((x) => x !== "hostname");
-      arguments.push("+hostname", "ws" + clientId.replaceAll(".", ""));
+      if (!arguments.includes("+hostname")) {
+        arguments.push("+hostname", "ws" + clientId.replaceAll(".", ""));
+      }
 
-      arguments = arguments.filter((x) => x !== "name");
-      arguments.push("+name", "ws" + clientId.replaceAll(".", ""));
+      if (!arguments.includes("+name")) {
+        arguments.push("+name", "ws" + clientId.replaceAll(".", ""));
+      }
 
       arguments = arguments.filter((x) => x !== "color");
       arguments.push("+color", color);
 
       arguments = arguments.map((x) => x.toString());
 
-      console.log(`arguments: ${arguments}`);
+      console.log(`arguments (after): ${JSON.stringify(arguments)}`);
 
       var Module = {
         print(...e) {

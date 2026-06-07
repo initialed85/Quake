@@ -219,6 +219,7 @@ float		waypoint_mode, dump_mode;
 float		waypoints, direct_route;
 float		sv_friction, sv_gravity;
 float		sv_accelerate, sv_maxspeed, sv_stopspeed;
+float		bot_count_cvar, human_count;
 entity	fixer;
 entity	route_table;
 entity	b_temp1, b_temp2, b_temp3;
@@ -1270,6 +1271,7 @@ void() BotFrame =
 
 	self = nextent(world);
 	num = 0;
+	human_count = 0;
 	while (num < max_clients)
 	{
 		if (self.ishuman == FALSE)
@@ -1281,6 +1283,8 @@ void() BotFrame =
 				SV_ClientThink();
 				SV_Physics_Client();
 			}
+		} else {
+			human_count += 1;
 		}
 		self = nextent(self);
 		num = num + 1;
@@ -1289,6 +1293,20 @@ void() BotFrame =
 
 	if (saved_bots)
 		bot_return();
+		
+	bot_count_cvar = cvar("botcount");
+	
+	local float f;
+	f = cvar("skill");
+	
+	// TODO; no protection for too many bots (crashes the game)
+	while (bot_count < bot_count_cvar) {
+		BotConnect(0, 0, f);
+	}
+	
+	while (bot_count > bot_count_cvar) {
+		KickABot();
+	}
 };
 
 /*

@@ -53,6 +53,8 @@ server style).
 - [TODO] Fix FrikBot going into some state where it won't attack (probably relates to my workaround hack for runaway loop error)
 - [TODO] Make it so the server can specify some FrikBots to join from the commandline
 - [TODO] Fix bug wherein own name doesn't appear in scoreboard when maxplayers == 32
+- [TODO] Add range safety check for custom "botcount" cvar
+- [TODO] Fix bug wherein progs crashes if too many players try to connect
 
 ## Usage
 

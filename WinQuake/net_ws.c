@@ -54,7 +54,7 @@ int WS_Init(void) {
   } else {
     strcpy(websocketurl, DEFAULT_WEBSOCKET_URL);
   }
-  printf("websocketurl: %s\n", websocketurl);
+  Con_Printf("websocketurl: %s\n", websocketurl);
 
   i = COM_CheckParm("-clientid");
   if ((i) && (i != (com_argc - 1))) {
@@ -62,37 +62,37 @@ int WS_Init(void) {
   } else {
     strcpy(clientid, "127.0.0.1");
   }
-  printf("clientid: %s\n", clientid);
+  Con_Printf("clientid: %s\n", clientid);
 
   ourhoststr = calloc(15, sizeof(char));
   sprintf(ourhoststr, "%s", clientid);
-  printf("ourhoststr: %s\n", ourhoststr);
+  Con_Printf("ourhoststr: %s\n", ourhoststr);
 
   ouraddrstr = calloc(22, sizeof(char));
   sprintf(ouraddrstr, "%s:%d", ourhoststr, net_hostport);
-  printf("ouraddrstr: %s\n", ouraddrstr);
+  Con_Printf("ouraddrstr: %s\n", ouraddrstr);
 
   ouraddr = calloc(1, sizeof(struct qsockaddr));
   string_to_addr(ouraddrstr, ouraddr);
-  printf("ouraddr: %s\n", addr_to_string_static(ouraddr));
+  Con_Printf("ouraddr: %s\n", addr_to_string_static(ouraddr));
 
   broadcastaddrstr = calloc(22, sizeof(char));
   sprintf(broadcastaddrstr, "255.255.255.255:%d", DEFAULTnet_hostport);
-  printf("broadcastaddrstr: %s\n", broadcastaddrstr);
+  Con_Printf("broadcastaddrstr: %s\n", broadcastaddrstr);
 
   broadcastaddr = calloc(1, sizeof(struct qsockaddr));
   string_to_addr(broadcastaddrstr, broadcastaddr);
-  printf("broadcastaddr: %s\n", addr_to_string_static(ouraddr));
+  Con_Printf("broadcastaddr: %s\n", addr_to_string_static(ouraddr));
 
   tempaddr = calloc(1, sizeof(struct qsockaddr));
 
   srand(time(NULL));
   // net_controlsocket = WS_OpenSocket(0);
   net_controlsocket = WS_OpenSocket(DEFAULTnet_hostport);
-  printf("net_controlsocket: %d\n", net_controlsocket);
+  Con_Printf("net_controlsocket: %d\n", net_controlsocket);
 
   tcpipAvailable = true;
-  printf("net_controlsocket: %d\n", net_controlsocket);
+  Con_Printf("net_controlsocket: %d\n", net_controlsocket);
 
   Con_Printf("WS_Init: WebSockets initialized\n");
 

@@ -58,6 +58,7 @@ cvar_t saved1 = {"saved1", "0", true};
 cvar_t saved2 = {"saved2", "0", true};
 cvar_t saved3 = {"saved3", "0", true};
 cvar_t saved4 = {"saved4", "0", true};
+cvar_t botcount = {"botcount", "0"};
 
 #define MAX_FIELD_LEN 64
 #define GEFV_CACHESIZE 2
@@ -972,10 +973,10 @@ void PR_LoadProgs(void) {
   while (pr_stringscount < progs->numstrings) {
     strcpy(pr_string, pr_strings + pr_stringssize);
 
-    PR_StrReprC(pr_string_repr, pr_string);
-    printf("pr_strings + %#x (pr_strings[%d]) == %#lx == (%lu) %s\n",
-           pr_stringssize, pr_stringscount, (long)pr_strings + pr_stringssize,
-           strlen(pr_string), pr_string_repr);
+    // PR_StrReprC(pr_string_repr, pr_string);
+    // printf("pr_strings + %#x (pr_strings[%d]) == %#lx == (%lu) %s\n",
+    //        pr_stringssize, pr_stringscount, (long)pr_strings + pr_stringssize,
+    //        strlen(pr_string), pr_string_repr);
 
     pr_stringscount++;
     pr_stringssize += strlen(pr_string) + 1; // including null terminator
@@ -988,13 +989,6 @@ void PR_LoadProgs(void) {
          pr_stringssize - 1);
 
   pr_functions = (dfunction_t *)((byte *)progs + progs->ofs_functions);
-  printf("\nprogs->ofs_functions: %d\n", progs->ofs_functions);
-  dfunction_t pr_function;
-  for (i = 0; i < progs->numfunctions; i++) {
-    pr_function = pr_functions[i];
-    printf("pr_function[%d] = pr_strings[%d] => %s\n", i, pr_function.s_name,
-           PR_StrQCToC(pr_function.s_name));
-  }
 
   pr_globaldefs = (ddef_t *)((byte *)progs + progs->ofs_globaldefs);
 
@@ -1065,6 +1059,7 @@ void PR_Init(void) {
   Cvar_RegisterVariable(&saved2);
   Cvar_RegisterVariable(&saved3);
   Cvar_RegisterVariable(&saved4);
+  Cvar_RegisterVariable(&botcount);
 }
 
 edict_t *EDICT_NUM(int n) {
