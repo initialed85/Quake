@@ -145,14 +145,14 @@ if (EMSCRIPTEN)
     )
   else()
     set(DRY_CFLAGS ${DRY_CFLAGS}
-      "-gsource-map"
-      "--source-map-base=/"
+      # "-gsource-map"
+      # "--source-map-base=/"
     )
 
     set(DRY_LDFLAGS ${DRY_LDFLAGS}
-      "-gsource-map"
-      "--source-map-base=/"
-      "-sSOURCE_MAP_PREFIXES=/${PROJECT_SOURCE_DIR}/=/WinQuake/"
+      # "-gsource-map"
+      # "--source-map-base=/"
+      # "-sSOURCE_MAP_PREFIXES=/${PROJECT_SOURCE_DIR}/=/WinQuake/"
     )
   endif()
 else()
