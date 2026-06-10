@@ -11,6 +11,13 @@ added by initialed85
 #include "quakedef.h"
 #include "sys_sdl2.h"
 
+// WASM movement "feels" like a sensitivity 11 is more like sensitivity 9
+#ifdef __EMSCRIPTEN__
+#define INPUT_SCALE 1.5
+#else
+#define INPUT_SCALE 1.0
+#endif
+
 cvar_t m_filter = {"m_filter", "1"};
 
 float mouse_x, mouse_y;
@@ -45,6 +52,9 @@ void IN_Move(usercmd_t *cmd) {
 
   mouse_x *= sensitivity.value;
   mouse_y *= sensitivity.value;
+
+  mouse_x *= INPUT_SCALE;
+  mouse_y *= INPUT_SCALE;
 
   if (in_mlook.state & 1)
     V_StopPitchDrift();

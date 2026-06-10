@@ -1,0 +1,178 @@
+<html>
+  <head>
+    <title>Quake</title>
+    <script>
+      window.onload = function () {
+        let storedName = sessionStorage.getItem("storedName")?.trim() || undefined;
+        storedName?.length ? storedName : undefined;
+
+        let storedClientId = sessionStorage.getItem("storedClientId")?.trim() || undefined;
+        storedClientId?.length ? storedClientId : undefined;
+
+        const resetLinks = () => {
+          console.log(storedClientId, typeof storedClientId);
+
+          if (
+              !storedClientId ||
+              typeof storedClientId !== "string" ||
+              storedClientId.split(".").length !== 4 ||
+              storedClientId === "255.255.255.255" ||
+              storedClientId.split(".")[0] === "0" ||
+              storedClientId.split(".")[0] === "255"
+          ) {
+            storedClientId = undefined;
+          }
+
+          for (let i = 1; i <= 11; i++) {
+            let linkEl = document.getElementById(`link_${i}`);
+
+            let link = linkEl.href.split("?")[0] + "?";
+
+            if (storedClientId?.length) {
+              link += `-clientid ${storedClientId}`;
+            }
+
+            if (storedName?.length) {
+              if (storedClientId?.length) {
+                link += "&";
+              }
+
+              link += `+name ${storedName}`;
+            }
+
+            const connect = linkEl.href.split("+connect")[1];
+            if (connect !== undefined){
+              link += "&+connect" + connect;
+            }
+
+            linkEl.href = link;
+          }
+        }
+
+        resetLinks();
+
+        //
+        // name
+        //
+
+        if (storedName?.length) {
+          document.getElementById("name").value = storedName;
+        };
+
+        document.getElementById("name").addEventListener("change", (event) => {
+          let name = (event.target.value ?? "").trim();
+
+          name.length ? name : undefined;
+
+          sessionStorage.setItem("storedName", name);
+          storedName = sessionStorage.getItem("storedName");
+
+          resetLinks();
+        });
+
+        //
+        // clientid
+        //
+
+        if (storedClientId?.length){
+          document.getElementById("clientId").value = storedClientId;
+        }
+
+        document.getElementById("clientId").addEventListener("change", (event) => {
+          let clientId = (event.target.value ?? "").trim();
+
+          clientId.length ? clientId : undefined;
+
+          sessionStorage.setItem("storedClientId", clientId);
+          storedClientId = clientId;
+
+          resetLinks();
+        });
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Quake</h1>
+
+    <p>
+      This is the entrypoint to my Quake port
+      <a target="_blank" href="https://github.com/initialed85/Quake">(source code)</a>; it's aiming to be as close to the original software-rendered Quake experience as possible.
+    </p>
+
+    <p>It has the following notable features:</p>
+
+    <ul style="font-size: 10pt">
+      <li>WASM support</li>
+      <ul style="font-size: 10pt">
+        <li>Compiled using <a target="_blank" href="http://emscripten.org/">Emscripten</a></li>
+        <li>Playable via this website</li>
+      </ul>
+      <li>WebSocket multiplayer</li>
+      <ul style="font-size: 10pt">
+        A simple <a target="_blank" href="https://go.dev/">Go</a> server handles connections <a target="_blank" href="https://github.com/initialed85/Quake/blob/master/ws-server/main.go">(source code)</a></li>
+        <li>All game sessions from this website will appear as if on the same LAN</li>
+      </ul>
+    </ul>
+
+    <p>Tips:</p>
+
+    <ul style="font-size: 10pt">
+      <li><b>Once the game starts, you will have to click inside the game frame to enable mouse control + sound</b></li>
+      <li>Toggle the console with the tidle key: ~</li>
+      <li>Change your name using the console: "name (name)"</li>
+      <li>Add a bot using the console: "impulse 100"</li>
+    </ul>
+
+    <h2>Settings</h2>
+
+    <div>
+      <input id="name" type="text" />
+      <label>In-game player name (blank = auto)</label>
+    </div>
+
+    <div style="padding-top: 0.25em;">
+      <input id="clientId" type="text" />
+      <label>Emulated IP address (blank = auto, check in console)</label>
+    </div>
+
+    <h2>Join a hosted multiplayer server</h2>
+
+    <div>
+      <a id="link_1" target="_blank" href="/Quake.html?+connect 137.137.137.10:26001">Coop (easy)</a>
+      <br />
+      <a id="link_2" target="_blank" href="/Quake.html?+connect 137.137.137.11:26001">Coop (medium)</a>
+      <br />
+      <a id="link_3" target="_blank" href="/Quake.html?+connect 137.137.137.12:26001">Coop (hard)</a>
+      <br />
+      <a id="link_4" target="_blank" href="/Quake.html?+connect 137.137.137.13:26001">Coop (nightmare)</a>
+      <br />
+    </div>
+
+    <br />
+
+    <div>
+      <a id="link_5" target="_blank" href="/Quake.html?+connect 137.137.137.21:26001">Deathmatch (dm1)</a>
+      <br />
+      <a id="link_6" target="_blank" href="/Quake.html?+connect 137.137.137.22:26001">Deathmatch (dm2)</a>
+      <br />
+      <a id="link_7" target="_blank" href="/Quake.html?+connect 137.137.137.23:26001">Deathmatch (dm3)</a>
+      <br />
+      <a id="link_8" target="_blank" href="/Quake.html?+connect 137.137.137.24:26001">Deathmatch (dm4)</a>
+      <br />
+      <a id="link_9" target="_blank" href="/Quake.html?+connect 137.137.137.25:26001">Deathmatch (dm5)</a>
+      <br />
+      <a id="link_10" target="_blank" href="/Quake.html?+connect 137.137.137.26:26001">Deathmatch (dm6)</a>
+      <br />
+    </div>
+
+    <h2>Start your own session</h2>
+
+    <div>
+      <a id="link_11" target="_blank" href="/Quake.html">Click here</a>
+    </div>
+
+    <br />
+    <hr />
+    <br />
+  </body>
+</html>

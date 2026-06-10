@@ -11,6 +11,7 @@ fi
 docker build -t quake-wasm-nginx -f ./Dockerfile.nginx .
 docker run --rm -it -p 80:80 \
 	-v "$(pwd)/WinQuake/build-wasm:/usr/share/nginx/html" \
+	-v "$(pwd)/index.html:/usr/share/nginx/html/index.html" \
 	-v "$(pwd)/WinQuake:/usr/share/nginx/html/WinQuake" \
 	-v "$(pwd)/WinQuake/emsdk/upstream:/usr/share/nginx/html/emsdk" \
 	--name quake-wasm-nginx quake-wasm-nginx

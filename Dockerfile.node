@@ -1,4 +1,4 @@
-FROM node:lts-trixie
+FROM oven/bun:1.3.14-debian
 
 WORKDIR /srv/
 
@@ -8,5 +8,5 @@ COPY ./WinQuake/build-wasm/Quake.js /srv/
 COPY ./WinQuake/build-wasm/Quake.wasm /srv/
 COPY ./WinQuake/build-wasm/Quake.wasm.map /srv/
 
-ENTRYPOINT ["node", "/srv/Quake.js"]
-CMD ["-websocketurl", "http://localhost/ws", "-dedicated", "16", "+coop", "1", "+deathmatch", "0", "+skill", "3", "+map", "e1m1"]
+ENTRYPOINT ["bun", "/srv/Quake.js"]
+CMD ["-websocketurl", "http://172.17.0.1/ws", "-dedicated", "16", "+coop", "1", "+deathmatch", "0", "+skill", "3", "+map", "e1m1"]

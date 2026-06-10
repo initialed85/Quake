@@ -9,12 +9,12 @@
             "program": "${workspaceFolder}/WinQuake/build-native/Quake",
             "args": [
                 "-port",
-                "26998",
+                "26999",
                 "-width",
                 "1280",
                 "-height",
                 "800",
-                // "-fullscreen",
+                "-fullscreen",
                 "+deathmatch",
                 "1",
                 "+maxplayers",
@@ -51,7 +51,7 @@
             "program": "${workspaceFolder}/WinQuake/build-native/Quake",
             "args": [
                 "-port",
-                "26999",
+                "26997",
                 "-dedicated",
                 "16",
                 "+map",
@@ -60,7 +60,7 @@
             "cwd": "${workspaceFolder}/WinQuake"
         },
         {
-            "name": "Debug (Linux in Docker)",
+            "name": "Debug (Linux in Docker) - dedicated",
             "type": "lldb",
             "request": "launch",
             "preLaunchTask": "Build and run (Linux in Docker)",
@@ -82,6 +82,6 @@
             "env": {
                 "LD_LIBRARY_PATH": "/srv/WinQuake/build-linux"
             }
-        }
+        },
     ]
 }

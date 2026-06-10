@@ -1,6 +1,7 @@
 **
 
 !nginx-default.conf
+!index.html
 
 !WinQuake/build-wasm/Quake.data
 !WinQuake/build-wasm/Quake.html

@@ -15,6 +15,6 @@
             "type": "shell",
             "label": "Stop (Linux in Docker)",
             "command": "./.vscode/stop-linux-in-docker.sh",
-        }
+        },
     ]
 }

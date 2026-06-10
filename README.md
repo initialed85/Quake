@@ -94,7 +94,7 @@ NOTE: You'll need to place your demo / purchased Quake resources at `WinQuake/id
 # build any time code changes
 ./watch-build-wasm.sh
 
-# run at https://localhost:8443 (play using a browser)
+# run at http://localhost:80 (play using a browser)
 ./run-wasm.sh
 ```
 
