@@ -3,8 +3,8 @@
 This repo contains my attempt to modernise the Quake 1 source code.
 
 If it's working (mileage varies) you can play it right now at [quake.initialed85.cc](https://quake.initialed85.cc); I'm running
-a few dedicated servers, but you can also run your own to play against others right from your (standard old school Quake listen
-server style).
+a few dedicated servers, but you can also run your own to play against others (standard old school Quake listen server style)
+right from your browser.
 
 ## Goals
 
