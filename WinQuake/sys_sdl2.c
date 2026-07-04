@@ -526,8 +526,8 @@ void Sys_SendKeyEvents(void) {
   // last value we told it and the practical impact of that is that the mouse
   // will slowly track across the screen even though you're not touching it)
   if (!had_mouse_events) {
-    mx = (float)(event.motion.xrel);
-    my = (float)(event.motion.yrel);
+    mx = 0.0f;
+    my = 0.0f;
   }
 }
 

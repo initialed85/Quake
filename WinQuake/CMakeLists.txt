@@ -178,9 +178,6 @@ set(CMAKE_EXE_LINKER_FLAGS ${DRY_LDFLAGS_STR})
 # third party libs
 #
 
-# this seems to be how you do "package management"
-include(FetchContent)
-
 # m = math
 set(DRY_LIBS
   "m"
@@ -188,17 +185,7 @@ set(DRY_LIBS
 
 # emscripten bundles SDL2, so we only need to actually pull it for native builds
 if (NOT EMSCRIPTEN)
-  FetchContent_Declare(
-    SDL2
-    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-    GIT_TAG release-2.32.4
-  )
-
-  FetchContent_MakeAvailable(SDL2)
-
-  set(DRY_LIBS ${DRY_LIBS}
-    "SDL2::SDL2"
-  )
+  find_package(SDL2 REQUIRED)
 endif()
 
 string(JOIN " " DRY_LIBS_STR ${DRY_LIBS})

@@ -104,14 +104,6 @@ void VID_Init(unsigned char *palette) {
   // these two seem to cause the mouse cursor to disappear favourably
   SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1",
                           SDL_HINT_OVERRIDE);
-  if (SDL_SetRelativeMouseMode(SDL_TRUE) < 0) {
-    SDL_Log("Failed to SDL_SetRelativeMouseMode(SDL_TRUE): %s", SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
-  };
 
   if ((pnum = COM_CheckParm("-width"))) {
     if (pnum >= com_argc - 1)
@@ -150,6 +142,18 @@ void VID_Init(unsigned char *palette) {
             "SDL_WINDOWPOS_CENTERED, screen_width, screen_height, "
             "window_flags): %s",
             SDL_GetError());
+#ifdef __EMSCRIPTEN__
+    emscripten_force_exit(1);
+#else
+    exit(1);
+#endif
+  }
+
+  // enable relative mouse mode (capture) so we get continuous delta-based
+  // motion events instead of absolute position — this is what lets the cursor
+  // disappear and spin endlessly in FPS games. Must be after window creation.
+  if (SDL_SetRelativeMouseMode(SDL_TRUE) < 0) {
+    SDL_Log("Failed to SDL_SetRelativeMouseMode(SDL_TRUE): %s", SDL_GetError());
 #ifdef __EMSCRIPTEN__
     emscripten_force_exit(1);
 #else
