@@ -213,7 +213,6 @@ void VID_Init(unsigned char *palette) {
 
   vid.width = vid.conwidth = screen_width;
   vid.height = vid.conheight = screen_height;
-
   if (vid.width > MAXWIDTH || vid.height > MAXHEIGHT) {
     SDL_Log("Failed VID_Init(unsigned char *palette) because vid.width (%d) > MAXWIDTH (%d) and / or vid.height (%d) > MAXHEIGHT (%d))",
             vid.width, MAXWIDTH, vid.height, MAXHEIGHT);
@@ -225,7 +224,10 @@ void VID_Init(unsigned char *palette) {
   vid.maxwarpwidth = WARP_WIDTH;
   vid.maxwarpheight = WARP_HEIGHT;
 
-  vid.aspect = ((float)vid.height / (float)vid.width) * (320.0 / 200.0);
+  // SDL2 stretches uniformly, so pixels stay square regardless of display
+  // resolution. Use the native Quake pixel aspect ratio (5/4 = 1.25) which
+  // matches CRT-era 320x200 on a 4:3 display.
+  vid.aspect = 5.0f / 4.0f;
   vid.numpages = 2;
   vid.colormap = host_colormap;
   vid.fullbright = 256 - LittleLong(*((int *)vid.colormap + 2048));

@@ -68,12 +68,17 @@ void D_ViewChanged(void) {
   d_zrowbytes = vid.width * 2;
   d_zwidth = vid.width;
 
-  d_pix_min = r_refdef.vrect.width / 320;
+  // Particle sizing — multiply by ~4 so they're visible at high-res but
+  // don't blow up to cartoon proportions like the original did.
+  // Particle sizing — native resolution with shift reduced by 1 so particles
+  // are ~4x bigger in area (2x linear) at all resolutions.
+  d_pix_min = 1;
   if (d_pix_min < 1)
     d_pix_min = 1;
 
-  d_pix_max = (int)((float)r_refdef.vrect.width / (320.0 / 4.0) + 0.5);
-  d_pix_shift = 8 - (int)((float)r_refdef.vrect.width / 320.0 + 0.5);
+  d_pix_max = 4;
+  // Reduced by 1 from original so pix values are ~2x bigger → particles look ~4x bigger in area
+  d_pix_shift = 8 - (int)((float)r_refdef.vrect.width / 320.0 + 0.5) - 1;
   if (d_pix_max < 1)
     d_pix_max = 1;
 
