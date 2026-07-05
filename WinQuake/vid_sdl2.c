@@ -161,6 +161,10 @@ void VID_Init(unsigned char *palette) {
 #endif
   }
 
+  // actually hide the system cursor — relative mouse mode alone doesn't do this
+  // on some compositors (GNOME/Wayland especially).
+  SDL_ShowCursor(SDL_DISABLE);
+
   // renderer is what paints onto the window I guess
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
   if (!renderer) {
@@ -243,6 +247,8 @@ void VID_Init(unsigned char *palette) {
 }
 
 void VID_Shutdown(void) {
+  // restore cursor visibility before quitting
+  SDL_ShowCursor(SDL_ENABLE);
   SDL_DestroyTexture(texture);
   SDL_DestroyRenderer(renderer);
   SDL_DestroyWindow(window);
