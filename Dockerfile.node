@@ -6,7 +6,7 @@ COPY ./WinQuake/build-wasm/Quake.data /srv/
 COPY ./WinQuake/build-wasm/Quake.html /srv/
 COPY ./WinQuake/build-wasm/Quake.js /srv/
 COPY ./WinQuake/build-wasm/Quake.wasm /srv/
-COPY ./WinQuake/build-wasm/Quake.wasm.map /srv/
+# COPY ./WinQuake/build-wasm/Quake.wasm.map /srv/
 
 ENTRYPOINT ["bun", "/srv/Quake.js"]
 CMD ["-websocketurl", "http://172.17.0.1/ws", "-dedicated", "16", "+coop", "1", "+deathmatch", "0", "+skill", "3", "+map", "e1m1"]

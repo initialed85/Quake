@@ -1354,6 +1354,9 @@ static qsocket_t *_Datagram_Connect(char *host) {
 
   dfunc.GetNameFromAddr(&sendaddr, sock->address);
 
+#ifdef __EMSCRIPTEN__
+  emscripten_run_script("window.parent.postMessage('quake_connected', '*');");
+#endif
   Con_Printf("Connection accepted\n");
   sock->lastMessageTime = SetNetTime();
 

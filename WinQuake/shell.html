@@ -164,7 +164,14 @@
 
       console.log(`arguments (after): ${JSON.stringify(arguments)}`);
 
-      var Module = {
+        const onMessage = (e) => {
+            if (e.data === 'quake_connected' || e.data?.type === 'quake_connected') {
+                console.log("received 'quake_connected' event");
+            }
+        };
+        window.addEventListener('message', onMessage);
+
+        var Module = {
         print(...e) {
           console.log(...e);
         },
