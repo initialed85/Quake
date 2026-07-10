@@ -143,8 +143,8 @@ extern int ubasestep, errorterm, erroradjustup, erroradjustdown;
 
 // !!! if this is changed, it must be changed in asm_draw.h too !!!
 typedef struct edge_s {
-  fixed16_t u;
-  fixed16_t u_step;
+  long long u;
+  long long u_step;
   struct edge_s *prev, *next;
   unsigned short surfs[2];
   struct edge_s *nextremove;

@@ -58,7 +58,7 @@ void D_ViewChanged(void) {
   int rowbytes;
 
   if (r_dowarp)
-    rowbytes = WARP_WIDTH;
+    rowbytes = vid.width;
   else
     rowbytes = vid.rowbytes;
 

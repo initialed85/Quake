@@ -288,8 +288,8 @@ void VID_Init(unsigned char *palette) {
   // the WARP_WIDTH and WARP_HEIGHT constants are used elsewhere relating to
   // warping (water / lava?) in a way that affects memory alignment, so these
   // struct properties must be set this way to avoid segfaults
-  vid.maxwarpwidth = WARP_WIDTH;
-  vid.maxwarpheight = WARP_HEIGHT;
+  vid.maxwarpwidth = vid.width;
+  vid.maxwarpheight = vid.height;
 
   vid.aspect = ((float)vid.height / (float)vid.width) * (320.0 / 200.0);
   vid.numpages = 2;

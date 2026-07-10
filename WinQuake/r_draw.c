@@ -75,7 +75,7 @@ R_EmitEdge
 */
 void R_EmitEdge(mvertex_t *pv0, mvertex_t *pv1) {
   edge_t *edge, *pcheck;
-  int u_check;
+  long long u_check;
   float u, u_step;
   vec3_t local, transformed;
   float *world;
