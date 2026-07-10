@@ -48,6 +48,9 @@ cvar_t sys_linerefresh = {"sys_linerefresh", "0"}; // set for entity display
 float mx = 0.0;
 float my = 0.0;
 
+int imx = 0.0;
+int imy = 0.0;
+
 float old_mx = 0.0;
 float old_my = 0.0;
 
@@ -156,7 +159,7 @@ void Sys_Init(void) {
 
 void Sys_Error(char *error, ...) {
   fflush(stdout);
-  
+
   va_list argptr;
   char string[1024];
 
@@ -512,11 +515,20 @@ void Sys_SendKeyEvents(void) {
     // position here (relative mouse position is stuff like x: -2, y: 5 where
     // the values are relative to the mouse position from the previous mouse
     // motion event)
-    if (event.type == SDL_MOUSEMOTION) {
-      mx = (float)(event.motion.xrel);
-      my = (float)(event.motion.yrel);
+
+    SDL_GetRelativeMouseState(&imx, &imy);
+
+    if (imx != 0 || imy != 0) {
+      mx = (float)imx;
+      my = (float)imy;
       had_mouse_events = true;
     }
+
+    // if (event.type == SDL_MOUSEMOTION) {
+    //   mx = (float)(event.motion.xrel);
+    //   my = (float)(event.motion.yrel);
+    //   had_mouse_events = true;
+    // }
   }
 
   // this is important; when you stop moving the mouse, there is no mouse motion
@@ -526,8 +538,8 @@ void Sys_SendKeyEvents(void) {
   // last value we told it and the practical impact of that is that the mouse
   // will slowly track across the screen even though you're not touching it)
   if (!had_mouse_events) {
-    mx = (float)(event.motion.xrel);
-    my = (float)(event.motion.yrel);
+    mx = 0.0f;
+    my = 0.0f;
   }
 }
 

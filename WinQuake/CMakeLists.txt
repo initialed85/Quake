@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.22.1)
 
+if(UNIX AND NOT APPLE)
+  set(CMAKE_C_COMPILER "clang" CACHE STRING "C compiler" FORCE)
+  set(CMAKE_CXX_COMPILER "clang++" CACHE STRING "C++ compiler" FORCE)
+endif()
+
 project(Quake VERSION 1.09 LANGUAGES C)
 
 #
@@ -188,17 +193,29 @@ set(DRY_LIBS
 
 # emscripten bundles SDL2, so we only need to actually pull it for native builds
 if (NOT EMSCRIPTEN)
-  FetchContent_Declare(
-    SDL2
-    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-    GIT_TAG release-2.32.4
-  )
+  # FetchContent_Declare(
+  #   SDL3
+  #   GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+  #   GIT_TAG release-3.4.12pacman -Qe | grep sdl
 
-  FetchContent_MakeAvailable(SDL2)
+  # )
+  
+  # FetchContent_MakeAvailable(SDL3)
 
-  set(DRY_LIBS ${DRY_LIBS}
-    "SDL2::SDL2"
-  )
+  # FetchContent_Declare(
+  #   SDL2
+  #   GIT_REPOSITORY https://github.com/libsdl-org/sdl2-compat.git
+  #   GIT_TAG release-2.32.70
+  # )
+
+  # FetchContent_MakeAvailable(SDL2)
+
+  # set(DRY_LIBS ${DRY_LIBS}
+  #   "SDL2::SDL2"
+  # )
+  
+  # TODO: CachyOS hack
+  find_package(SDL2 CONFIG REQUIRED)
 endif()
 
 string(JOIN " " DRY_LIBS_STR ${DRY_LIBS})

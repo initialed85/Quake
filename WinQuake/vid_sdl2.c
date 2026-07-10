@@ -62,11 +62,7 @@ void VID_SetPalette(unsigned char *palette) {
     SDL_Log("Failed to SDL_SetPaletteColors(quake_surface->format->palette, "
             "sdl_palette, 0, 256): %s",
             SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
+    Sys_Error("SDL init failure");
   }
 }
 
@@ -100,18 +96,6 @@ void VID_Init(unsigned char *palette) {
 #endif
     }
   }
-
-  // these two seem to cause the mouse cursor to disappear favourably
-  SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1",
-                          SDL_HINT_OVERRIDE);
-  if (SDL_SetRelativeMouseMode(SDL_TRUE) < 0) {
-    SDL_Log("Failed to SDL_SetRelativeMouseMode(SDL_TRUE): %s", SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
-  };
 
   if ((pnum = COM_CheckParm("-width"))) {
     if (pnum >= com_argc - 1)
@@ -150,12 +134,30 @@ void VID_Init(unsigned char *palette) {
             "SDL_WINDOWPOS_CENTERED, screen_width, screen_height, "
             "window_flags): %s",
             SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
+    Sys_Error("SDL init failure");
   }
+
+  //
+  // these seem to cause the mouse cursor to disappear favourably
+  //
+
+  SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1",
+                          SDL_HINT_OVERRIDE);
+
+  SDL_SetHintWithPriority(SDL_HINT_VIDEO_WAYLAND_EMULATE_MOUSE_WARP, "0",
+                          SDL_HINT_OVERRIDE);
+
+  // SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "1",
+  //                         SDL_HINT_OVERRIDE);
+
+  // SDL_SetWindowMouseGrab(window, SDL_TRUE);
+
+  SDL_CaptureMouse(SDL_TRUE);
+
+  if (SDL_SetRelativeMouseMode(SDL_TRUE) < 0) {
+    SDL_Log("Failed to SDL_SetRelativeMouseMode(SDL_TRUE): %s", SDL_GetError());
+    Sys_Error("SDL init failure");
+  };
 
   // renderer is what paints onto the window I guess
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
@@ -163,11 +165,7 @@ void VID_Init(unsigned char *palette) {
     SDL_Log("Failed to SDL_CreateRenderer(window, -1, "
             "SDL_RENDERER_PRESENTVSYNC): %s",
             SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
+    Sys_Error("SDL init failure");
   }
 
   // the surface is what we paint the video buffer onto
@@ -177,11 +175,7 @@ void VID_Init(unsigned char *palette) {
     SDL_Log("Failed to SDL_CreateRGBSurfaceWithFormat(0, screen_width, "
             "screen_height, 8, SDL_PIXELFORMAT_INDEX8): %s",
             SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
+    Sys_Error("SDL init failure");
   }
 
   // texture seems to be a buffer we can write to that the renderer
@@ -193,11 +187,7 @@ void VID_Init(unsigned char *palette) {
     SDL_Log("Failed to SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, "
             "SDL_TEXTUREACCESS_STREAMING, screen_width, screen_height): %s",
             SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
+    Sys_Error("SDL init failure");
   }
 
   //
@@ -211,7 +201,8 @@ void VID_Init(unsigned char *palette) {
   vid.height = vid.conheight = screen_height;
 
   if (vid.width > MAXWIDTH || vid.height > MAXHEIGHT) {
-    SDL_Log("Failed VID_Init(unsigned char *palette) because vid.width (%d) > MAXWIDTH (%d) and / or vid.height (%d) > MAXHEIGHT (%d))",
+    SDL_Log("Failed VID_Init(unsigned char *palette) because vid.width (%d) > "
+            "MAXWIDTH (%d) and / or vid.height (%d) > MAXHEIGHT (%d))",
             vid.width, MAXWIDTH, vid.height, MAXHEIGHT);
   }
 
@@ -257,11 +248,7 @@ void VID_Update(vrect_t *rects) {
   if (SDL_LockTexture(texture, NULL, &pixels, &pitch) < 0) {
     SDL_Log("Failed SDL_LockTexture(texture, NULL, &pixels, &pitch): %s",
             SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
+    Sys_Error("SDL init failure");
   }
 
   // get a casted version of the pixels var above
@@ -281,22 +268,14 @@ void VID_Update(vrect_t *rects) {
   // clear some renderer buffer I guess
   if (SDL_RenderClear(renderer) < 0) {
     SDL_Log("Failed SDL_RenderClear(renderer): %s", SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
+    Sys_Error("SDL init failure");
   }
 
   // replace the renderer buffer with the texture
   if (SDL_RenderCopy(renderer, texture, NULL, NULL) < 0) {
     SDL_Log("Failed SDL_RenderCopy(renderer, texture, NULL, NULL): %s",
             SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
+    Sys_Error("SDL init failure");
   }
 
   // slam that on the screen
