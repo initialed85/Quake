@@ -137,27 +137,37 @@ void VID_Init(unsigned char *palette) {
     Sys_Error("SDL init failure");
   }
 
+  {
+    fprintf(stderr, "VID_Init: video driver = %s\n", SDL_GetCurrentVideoDriver());
+    fprintf(stderr, "VID_Init: window flags = 0x%x (FULLSCREEN_DESKTOP=0x%x)\n",
+            SDL_GetWindowFlags(window), (unsigned)SDL_WINDOW_FULLSCREEN_DESKTOP);
+  }
+
   //
   // these seem to cause the mouse cursor to disappear favourably
   //
 
-  SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1",
+  // do NOT force warp-based relative mouse mode: on Wayland the pointer cannot
+  // be warped, so doing so degrades to bounded behaviour (the cursor runs into
+  // the window edge and you can't look all the way around). let SDL use the
+  // native relative pointer protocol instead.
+  SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "0",
                           SDL_HINT_OVERRIDE);
 
   SDL_SetHintWithPriority(SDL_HINT_VIDEO_WAYLAND_EMULATE_MOUSE_WARP, "0",
                           SDL_HINT_OVERRIDE);
 
-  // SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_CENTER, "1",
-  //                         SDL_HINT_OVERRIDE);
-
-  // SDL_SetWindowMouseGrab(window, SDL_TRUE);
-
-  SDL_CaptureMouse(SDL_TRUE);
-
+  // grab the mouse to the window: on Wayland this drives
+  // zwp_confined_pointer_v1, which is what actually keeps the cursor from
+  // leaving the window. relative mode alone is supposed to do this too, but on
+  // some compositors (GNOME/Mutter) the lock isn't granted until the window
+  // has pointer focus, which it won't have yet at creation time. the actual
+  // grab is deferred to the first SDL_WINDOWEVENT_FOCUS_GAINED (handled in
+  // sys_sdl2.c::Sys_SendKeyEvents()).
   if (SDL_SetRelativeMouseMode(SDL_TRUE) < 0) {
     SDL_Log("Failed to SDL_SetRelativeMouseMode(SDL_TRUE): %s", SDL_GetError());
     Sys_Error("SDL init failure");
-  };
+  }
 
   // renderer is what paints onto the window I guess
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
@@ -225,6 +235,18 @@ void VID_Init(unsigned char *palette) {
   // Apply the initial palette
   if (palette)
     VID_SetPalette(palette);
+}
+
+void VID_GrabMouse(qboolean grab) {
+  if (!window)
+    return;
+  SDL_SetWindowMouseGrab(window, grab ? SDL_TRUE : SDL_FALSE);
+  if (grab) {
+    if (SDL_SetRelativeMouseMode(SDL_TRUE) < 0)
+      SDL_Log("VID_GrabMouse: SetRelativeMouseMode failed: %s", SDL_GetError());
+  } else {
+    SDL_SetRelativeMouseMode(SDL_FALSE);
+  }
 }
 
 void VID_Shutdown(void) {

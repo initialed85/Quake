@@ -48,9 +48,6 @@ cvar_t sys_linerefresh = {"sys_linerefresh", "0"}; // set for entity display
 float mx = 0.0;
 float my = 0.0;
 
-int imx = 0.0;
-int imy = 0.0;
-
 float old_mx = 0.0;
 float old_my = 0.0;
 
@@ -385,6 +382,16 @@ void Sys_SendKeyEvents(void) {
       return;
     }
 
+    // on Wayland, pointer lock / mouse grab can't be acquired until the
+    // window has input focus; grab it once focus is gained, release it on
+    // focus lost so alt-tab frees the mouse
+    if (event.type == SDL_WINDOWEVENT) {
+      if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
+        VID_GrabMouse(true);
+      else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
+        VID_GrabMouse(false);
+    }
+
     // as in down as in pressed, up as in released
     if ((event.type == SDL_KEYDOWN) || (event.type == SDL_KEYUP)) {
       // a bunch of the Quake-side key codes are just their ASCII
@@ -515,20 +522,11 @@ void Sys_SendKeyEvents(void) {
     // position here (relative mouse position is stuff like x: -2, y: 5 where
     // the values are relative to the mouse position from the previous mouse
     // motion event)
-
-    SDL_GetRelativeMouseState(&imx, &imy);
-
-    if (imx != 0 || imy != 0) {
-      mx = (float)imx;
-      my = (float)imy;
+    if (event.type == SDL_MOUSEMOTION) {
+      mx = (float)(event.motion.xrel);
+      my = (float)(event.motion.yrel);
       had_mouse_events = true;
     }
-
-    // if (event.type == SDL_MOUSEMOTION) {
-    //   mx = (float)(event.motion.xrel);
-    //   my = (float)(event.motion.yrel);
-    //   had_mouse_events = true;
-    // }
   }
 
   // this is important; when you stop moving the mouse, there is no mouse motion
