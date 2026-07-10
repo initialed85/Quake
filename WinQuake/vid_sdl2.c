@@ -40,6 +40,8 @@ void VID_SetPalette(unsigned char *palette) {
 
   int i;
 
+  static qboolean blend_table_built = false;
+
   // ref.: https://quakewiki.org/wiki/Quake_palette#palette.lmp
   // basically the palette is 256 RGB colours (so 3 bytes each)
   // for 768 bytes in total
@@ -67,8 +69,10 @@ void VID_SetPalette(unsigned char *palette) {
 
   // build the 256x256 particle alpha blend table: for each pair of palette
   // indices (a, b), find the nearest palette entry to a 50% mix of their RGB
-  // values. used by D_DrawParticle for semi-transparent particles.
-  {
+  // values. used by D_DrawParticle for semi-transparent particles. only built
+  // once from the base palette; screen flashes (VID_ShiftPalette) change the
+  // palette frequently but the blend table stays the same.
+  if (!blend_table_built) {
     int a, b, k;
     for (a = 0; a < 256; a++) {
       for (b = 0; b < 256; b++) {
@@ -96,6 +100,7 @@ void VID_SetPalette(unsigned char *palette) {
         d_partblendtable[a * 256 + b] = (byte)best;
       }
     }
+    blend_table_built = true;
   }
 }
 
