@@ -22,11 +22,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "r_local.h"
 
 #define MAX_PARTICLES                                                          \
-  4096 // default max # of particles at one
-       //  time
+  16384 // default max # of particles at one
+        //  time
 #define ABSOLUTE_MIN_PARTICLES                                                 \
-  512 // no fewer than this no matter what's
-      //  on the command line
+  1024 // no fewer than this no matter what's
+       //  on the command line
 
 int ramp1[8] = {0x6f, 0x6d, 0x6b, 0x69, 0x67, 0x65, 0x63, 0x61};
 int ramp2[8] = {0x6f, 0x6e, 0x6d, 0x6c, 0x6b, 0x6a, 0x68, 0x66};
@@ -263,7 +263,7 @@ void R_ParticleExplosion(vec3_t org) {
   int i, j;
   particle_t *p;
 
-  for (i = 0; i < 1024; i++) {
+  for (i = 0; i < 2048; i++) {
     if (!free_particles)
       return;
     p = free_particles;
@@ -301,7 +301,7 @@ void R_ParticleExplosion2(vec3_t org, int colorStart, int colorLength) {
   particle_t *p;
   int colorMod = 0;
 
-  for (i = 0; i < 512; i++) {
+  for (i = 0; i < 1024; i++) {
     if (!free_particles)
       return;
     p = free_particles;
@@ -331,7 +331,7 @@ void R_BlobExplosion(vec3_t org) {
   int i, j;
   particle_t *p;
 
-  for (i = 0; i < 1024; i++) {
+  for (i = 0; i < 2048; i++) {
     if (!free_particles)
       return;
     p = free_particles;
@@ -368,6 +368,8 @@ R_RunParticleEffect
 void R_RunParticleEffect(vec3_t org, vec3_t dir, int color, int count) {
   int i, j;
   particle_t *p;
+
+  count *= 2;
 
   for (i = 0; i < count; i++) {
     if (!free_particles)
@@ -420,7 +422,7 @@ void R_LavaSplash(vec3_t org) {
 
   for (i = -16; i < 16; i++)
     for (j = -16; j < 16; j++)
-      for (k = 0; k < 1; k++) {
+      for (k = 0; k < 2; k++) {
         if (!free_particles)
           return;
         p = free_particles;
@@ -497,7 +499,7 @@ void R_RocketTrail(vec3_t start, vec3_t end, int type) {
   VectorSubtract(end, start, vec);
   len = VectorNormalize(vec);
   if (type < 128)
-    dec = 3;
+    dec = 1;
   else {
     dec = 1;
     type -= 128;

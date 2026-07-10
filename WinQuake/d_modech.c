@@ -24,7 +24,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 int d_vrectx, d_vrecty, d_vrectright_particle, d_vrectbottom_particle;
 
-int d_y_aspect_shift, d_pix_min, d_pix_max, d_pix_shift;
+int d_y_aspect_shift, d_pix_min, d_pix_max;
+float d_pix_scale;
 
 int d_scantable[MAXHEIGHT];
 short *zspantable[MAXHEIGHT];
@@ -68,14 +69,24 @@ void D_ViewChanged(void) {
   d_zrowbytes = vid.width * 2;
   d_zwidth = vid.width;
 
-  d_pix_min = r_refdef.vrect.width / 320;
+  // particle pixel size: lock to the 320-wide baseline so particles stay
+  // ~1px regardless of resolution (original Quake scaled these with width
+  // to keep a constant angular size, which makes particles grow huge at
+  // high resolutions)
+  // particle pixel size: scales linearly with resolution so particles
+  // maintain a consistent physical size on screen. at 320-wide, particles
+  // are ~0.66x the size of the original 2x tweak (i.e. ~1.33x the original
+  // Quake baseline); at 1920-wide they scale up 6x proportionally.
+  // the original Quake used a bit-shift (powers of 2) which made particles
+  // grow exponentially with resolution — far too aggressively at high res.
+  float pscale = (float)r_refdef.vrect.width / 320.0;
+  d_pix_min = (int)(1.33 * pscale + 0.5);
   if (d_pix_min < 1)
     d_pix_min = 1;
-
-  d_pix_max = (int)((float)r_refdef.vrect.width / (320.0 / 4.0) + 0.5);
-  d_pix_shift = 8 - (int)((float)r_refdef.vrect.width / 320.0 + 0.5);
+  d_pix_max = (int)(5.33 * pscale + 0.5);
   if (d_pix_max < 1)
     d_pix_max = 1;
+  d_pix_scale = (1.33f * pscale) / 128.0f;
 
   if (pixelAspect > 1.4)
     d_y_aspect_shift = 1;

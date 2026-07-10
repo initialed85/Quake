@@ -22,6 +22,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include "d_local.h"
 
+byte d_partblendtable[256 * 256];
+
 /*
 ==============
 D_EndParticles
@@ -53,6 +55,7 @@ void D_DrawParticle(particle_t *pparticle) {
   byte *pdest;
   short *pz;
   int i, izi, pix, count, u, v;
+  byte *blendrow;
 
   // transform point
   VectorSubtract(pparticle->org, r_origin, local);
@@ -79,12 +82,16 @@ void D_DrawParticle(particle_t *pparticle) {
   pdest = d_viewbuffer + d_scantable[v] + u;
   izi = (int)(zi * 0x8000);
 
-  pix = izi >> d_pix_shift;
+  pix = (int)(izi * d_pix_scale);
 
   if (pix < d_pix_min)
     pix = d_pix_min;
   else if (pix > d_pix_max)
     pix = d_pix_max;
+
+  // precompute the blend table row for this particle's color so we can
+  // look up blended pixels as blendrow[existing_pixel]
+  blendrow = &d_partblendtable[(int)pparticle->color * 256];
 
   switch (pix) {
   case 1:
@@ -93,7 +100,7 @@ void D_DrawParticle(particle_t *pparticle) {
     for (; count; count--, pz += d_zwidth, pdest += screenwidth) {
       if (pz[0] <= izi) {
         pz[0] = izi;
-        pdest[0] = pparticle->color;
+        pdest[0] = blendrow[pdest[0]];
       }
     }
     break;
@@ -104,12 +111,12 @@ void D_DrawParticle(particle_t *pparticle) {
     for (; count; count--, pz += d_zwidth, pdest += screenwidth) {
       if (pz[0] <= izi) {
         pz[0] = izi;
-        pdest[0] = pparticle->color;
+        pdest[0] = blendrow[pdest[0]];
       }
 
       if (pz[1] <= izi) {
         pz[1] = izi;
-        pdest[1] = pparticle->color;
+        pdest[1] = blendrow[pdest[1]];
       }
     }
     break;
@@ -120,17 +127,17 @@ void D_DrawParticle(particle_t *pparticle) {
     for (; count; count--, pz += d_zwidth, pdest += screenwidth) {
       if (pz[0] <= izi) {
         pz[0] = izi;
-        pdest[0] = pparticle->color;
+        pdest[0] = blendrow[pdest[0]];
       }
 
       if (pz[1] <= izi) {
         pz[1] = izi;
-        pdest[1] = pparticle->color;
+        pdest[1] = blendrow[pdest[1]];
       }
 
       if (pz[2] <= izi) {
         pz[2] = izi;
-        pdest[2] = pparticle->color;
+        pdest[2] = blendrow[pdest[2]];
       }
     }
     break;
@@ -141,22 +148,22 @@ void D_DrawParticle(particle_t *pparticle) {
     for (; count; count--, pz += d_zwidth, pdest += screenwidth) {
       if (pz[0] <= izi) {
         pz[0] = izi;
-        pdest[0] = pparticle->color;
+        pdest[0] = blendrow[pdest[0]];
       }
 
       if (pz[1] <= izi) {
         pz[1] = izi;
-        pdest[1] = pparticle->color;
+        pdest[1] = blendrow[pdest[1]];
       }
 
       if (pz[2] <= izi) {
         pz[2] = izi;
-        pdest[2] = pparticle->color;
+        pdest[2] = blendrow[pdest[2]];
       }
 
       if (pz[3] <= izi) {
         pz[3] = izi;
-        pdest[3] = pparticle->color;
+        pdest[3] = blendrow[pdest[3]];
       }
     }
     break;
@@ -168,7 +175,7 @@ void D_DrawParticle(particle_t *pparticle) {
       for (i = 0; i < pix; i++) {
         if (pz[i] <= izi) {
           pz[i] = izi;
-          pdest[i] = pparticle->color;
+          pdest[i] = blendrow[pdest[i]];
         }
       }
     }

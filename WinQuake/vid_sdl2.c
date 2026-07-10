@@ -64,6 +64,39 @@ void VID_SetPalette(unsigned char *palette) {
             SDL_GetError());
     Sys_Error("SDL init failure");
   }
+
+  // build the 256x256 particle alpha blend table: for each pair of palette
+  // indices (a, b), find the nearest palette entry to a 50% mix of their RGB
+  // values. used by D_DrawParticle for semi-transparent particles.
+  {
+    int a, b, k;
+    for (a = 0; a < 256; a++) {
+      for (b = 0; b < 256; b++) {
+        int ar = palette[a * 3 + 0];
+        int ag = palette[a * 3 + 1];
+        int ab_ = palette[a * 3 + 2];
+        int br = palette[b * 3 + 0];
+        int bg = palette[b * 3 + 1];
+        int bb_ = palette[b * 3 + 2];
+        int mr = (ar + br) / 2;
+        int mg = (ag + bg) / 2;
+        int mb = (ab_ + bb_) / 2;
+        int best = 0;
+        int bestdist = 0x7fffffff;
+        for (k = 0; k < 256; k++) {
+          int dr = mr - (int)palette[k * 3 + 0];
+          int dg = mg - (int)palette[k * 3 + 1];
+          int db = mb - (int)palette[k * 3 + 2];
+          int dist = dr * dr + dg * dg + db * db;
+          if (dist < bestdist) {
+            bestdist = dist;
+            best = k;
+          }
+        }
+        d_partblendtable[a * 256 + b] = (byte)best;
+      }
+    }
+  }
 }
 
 void VID_ShiftPalette(unsigned char *palette) {
