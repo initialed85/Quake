@@ -214,6 +214,7 @@ static void MaxPlayers_f(void) {
     Cbuf_AddText("listen 1\n");
 
   svs.maxclients = n;
+  Cvar_SetValue("maxclients", n);
   if (n == 1)
     Cvar_Set("deathmatch", "0");
   else

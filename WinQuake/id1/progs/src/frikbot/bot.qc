@@ -746,15 +746,11 @@ void() BotInit =
 	local entity ent, fisent;
 	local float numents;
 
-	// spawn entities for the physics
-	ent = nextent(world);
-	max_clients = 0;
-
-	while(ent != world)
-	{
-		max_clients = max_clients + 1;
-		ent = nextent(ent);
-	}
+	// The engine reserves the first maxclients edicts for client slots.
+	// Count those slots from the engine cvar, not from currently spawned entities.
+	max_clients = cvar("maxclients");
+	if (max_clients < 1)
+		max_clients = 1;
 	if (max_clients > 32)
 		max_clients = 32;
 

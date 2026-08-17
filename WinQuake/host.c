@@ -84,6 +84,7 @@ cvar_t coop = {"coop", "0"};             // 0 or 1
 cvar_t pausable = {"pausable", "1"};
 
 cvar_t temp1 = {"temp1", "0"};
+cvar_t maxclients = {"maxclients", "1"};
 
 /*
 ================
@@ -194,6 +195,8 @@ void Host_FindMaxClients(void) {
     Cvar_SetValue("deathmatch", 1.0);
   else
     Cvar_SetValue("deathmatch", 0.0);
+
+  Cvar_SetValue("maxclients", svs.maxclients);
 }
 
 /*
@@ -223,6 +226,7 @@ void Host_InitLocal(void) {
   Cvar_RegisterVariable(&pausable);
 
   Cvar_RegisterVariable(&temp1);
+  Cvar_RegisterVariable(&maxclients);
 
   Host_FindMaxClients();
 

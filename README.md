@@ -56,7 +56,7 @@ right from your browser.
   - [DONE] Add regression tests for WebSocket broadcast fan-out
 - [DONE] Fix Linux Docker builds and package the runtime SDL2 dependency
 - [DONE] Fix server search not finding all virtual-LAN servers across matching ports
-- [DONE] Allow a server/browser entrypoint to provision an initial number of FrikBots via the `botcount` cvar
+- [DONE] Allow a server/browser entrypoint to provision an initial number of FrikBots via the `botcount` cvar (using the engine's `maxclients` capacity)
 - [TODO] Fix FrikBot occasionally entering a state where it will not attack (possibly related to runaway-loop protection)
 - [DONE] Add a safe range check for the custom `botcount` cvar; excessive bot counts are clamped to available slots
 - [DONE] Make `maxplayers 32` use the full supported scoreboard range
