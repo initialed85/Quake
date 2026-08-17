@@ -368,6 +368,7 @@ R_RunParticleEffect
 void R_RunParticleEffect(vec3_t org, vec3_t dir, int color, int count) {
   int i, j;
   particle_t *p;
+  qboolean rocket_explosion = count == 1024;
 
   count *= 2;
 
@@ -379,7 +380,7 @@ void R_RunParticleEffect(vec3_t org, vec3_t dir, int color, int count) {
     p->next = active_particles;
     active_particles = p;
 
-    if (count == 1024) { // rocket explosion
+    if (rocket_explosion) { // rocket explosion
       p->die = cl.time + 5;
       p->color = ramp1[0];
       p->ramp = rand() & 3;

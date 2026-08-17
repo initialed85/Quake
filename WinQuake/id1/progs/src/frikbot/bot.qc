@@ -1144,14 +1144,19 @@ kicks a bot if a player connects and takes the bot's space
 void(float clientno) BotInvalidClientNo =
 {
 	local entity bot;
+	local float bot_num, bot_skill;
 
 	bot = GetClientEntity(clientno);
 	if (bot.b_clientno == clientno && !bot.ishuman)
 	{
 		if (ClientIsActive(clientno))
 		{
+			bot_num = bot.b_num;
+			bot_skill = bot.b_skill;
 			BotDisconnect(bot);
-			BotConnect(0, bot.b_num, bot.b_skill);
+			// Keep the incoming human's slot reserved while the bot moves.
+			ClientSetActive(clientno);
+			BotConnect(0, bot_num, bot_skill);
 			return;
 		}
 	}
