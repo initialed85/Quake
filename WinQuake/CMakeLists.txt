@@ -1,10 +1,5 @@
 cmake_minimum_required(VERSION 3.22.1)
 
-if(UNIX AND NOT APPLE)
-  set(CMAKE_C_COMPILER "clang" CACHE STRING "C compiler" FORCE)
-  set(CMAKE_CXX_COMPILER "clang++" CACHE STRING "C++ compiler" FORCE)
-endif()
-
 project(Quake VERSION 1.09 LANGUAGES C)
 
 #
@@ -423,10 +418,17 @@ if (NOT EMSCRIPTEN)
   add_custom_command(TARGET Quake POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:SDL2::SDL2>" "$<TARGET_FILE_DIR:Quake>")
 endif()
 
-if(LINUX)
+if(LINUX AND NOT EMSCRIPTEN)
   if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    add_custom_command(TARGET Quake POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink "libSDL2-2.0.so.0.3200.4" "$<TARGET_FILE_DIR:Quake>/libSDL2-2.0.so.0")
+    set(SDL2_SONAME "libSDL2-2.0.so.0")
   else()
-    add_custom_command(TARGET Quake POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink "libSDL2-2.0d.so.0.3200.4" "$<TARGET_FILE_DIR:Quake>/libSDL2-2.0d.so.0")
+    set(SDL2_SONAME "libSDL2-2.0d.so.0")
   endif()
+
+  add_custom_command(
+    TARGET Quake POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
+      "$<TARGET_FILE_NAME:SDL2::SDL2>"
+      "$<TARGET_FILE_DIR:Quake>/${SDL2_SONAME}"
+  )
 endif()

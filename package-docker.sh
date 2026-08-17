@@ -7,7 +7,7 @@ rm -fr ./dist >/dev/null 2>&1
 mkdir -p ./dist/quake
 
 cp -frv ./WinQuake/build-docker/libQuakeLib.a ./dist/quake/
-cp -frv ./WinQuake/build-docker/libSDL2-2.0* ./dist/quake/
+cp -frv ./WinQuake/build-docker/libSDL2* ./dist/quake/
 cp -frv ./WinQuake/build-docker/Quake ./dist/quake/
 
 mkdir -p ./dist/quake/id1/progs

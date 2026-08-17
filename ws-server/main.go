@@ -43,6 +43,27 @@ var bridgeHeader = []byte{85, 91, 20, 24}
 var controlHeader = []byte{66, 99, 44, 22}
 var dataHeader = []byte{11, 33, 33, 77}
 
+func broadcastMessage(mu *sync.Mutex, outgoingMessagesByAddr map[Addr]chan []byte, src Addr, dst Addr, message []byte) bool {
+	handled := false
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	for otherAddr, otherOutgoingMessages := range outgoingMessagesByAddr {
+		if otherAddr == src || dst.Port != otherAddr.Port {
+			continue
+		}
+
+		handled = true
+		select {
+		case otherOutgoingMessages <- message:
+		default:
+		}
+	}
+
+	return handled
+}
+
 func main() {
 	upgrader := websocket.Upgrader{
 		HandshakeTimeout: time.Second * 10,
@@ -266,31 +287,7 @@ func main() {
 			}
 
 			if dst.IP == broadcastIP {
-				var otherOutgoingMessages chan []byte
-
-				mu.Lock()
-				for otherAddr, possibleOtherOutgoingMessages := range outgoingMessagesByAddr {
-					if otherAddr == *src {
-						continue
-					}
-
-					if dst.Port != otherAddr.Port {
-						continue
-					}
-
-					otherOutgoingMessages = possibleOtherOutgoingMessages
-
-					break
-				}
-				mu.Unlock()
-
-				if otherOutgoingMessages != nil {
-					select {
-					case otherOutgoingMessages <- message:
-						// log.Printf("broadcasting %d bytes from %s to %s (as %s)", len(data), src.String(), otherAddr.String(), dst.String())
-					default:
-					}
-				} else {
+				if !broadcastMessage(mu, outgoingMessagesByAddr, *src, *dst, message) {
 					log.Printf("warning: failed to broadcast %d bytes from %s to %s (as %s)", len(data), src.String(), "???", dst.String())
 				}
 			} else {
