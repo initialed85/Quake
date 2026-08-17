@@ -152,7 +152,7 @@ void(entity targ, float success) bot_lost =
 
 	target_drop(targ);
 	if (targ.classname == "waypoint")
-		targ.b_sound = targ.b_sound - (targ.b_sound & ClientBitFlag(self.b_clientno));
+		ClientRouteClear(targ, self.b_clientno);
 
 	// find a new route
 	if (!success)

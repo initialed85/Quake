@@ -142,6 +142,7 @@ for all variables in the bot...
 .float dyn_plat;
 .entity	temp_way, last_way, phys_obj;
 .entity	target1, target2, target3, target4;
+.float	b_route1, b_route2;
 .entity	_next, _last;
 .entity	current_way;
 .vector	b_angle, b_dest, mouse_emu, obs_dir;
@@ -212,7 +213,7 @@ float OPT_SAVEBOTS	= 1;
 float OPT_NOCHAT	= 2;
 
 // -------globals-----
-float 	active_clients;
+float		active_clients1, active_clients2;
 float		max_clients, real_frametime;
 float		bot_count, b_options;
 float		waypoint_mode, dump_mode;
@@ -234,7 +235,16 @@ void()				ClientDisconnect;
 void()				SetNewParms;
 
 // rankings
+float(float clientno)		ClientBitBank;
 float(float clientno)		ClientBitFlag;
+float(float clientno)		BotBitFlag;
+float(float clientno)		ClientIsActive;
+void(float clientno)		ClientSetActive;
+void(float clientno)		ClientClearActive;
+entity(float num)		GetClientEntity;
+float(entity waypoint, float clientno)	ClientRouteHas;
+void(entity waypoint, float clientno)	ClientRouteClear;
+void(entity waypoint, float clientno)	ClientRouteMark;
 float()				ClientNextAvailable;
 void(float whichteam, float whatbot, float whatskill) BotConnect;
 void(entity bot)			BotDisconnect;
@@ -566,15 +576,14 @@ void() ClientFixRankings =
 		return;
 	self.switch_wallhug = 0;
 
-	b_temp2 = nextent(world);
 	cno = 0;
 
 	while (cno < max_clients)
 	{
-		if ((!b_temp2.ishuman) && (active_clients & ClientBitFlag(cno)))
+		b_temp2 = GetClientEntity(cno);
+		if ((!b_temp2.ishuman) && ClientIsActive(cno))
 			UpdateClient(b_temp2);
 		cno = cno + 1;
-		b_temp2 = nextent(b_temp2);
 	}
 };
 
@@ -605,7 +614,7 @@ void() ClientInRankings =
 		self.ishuman = FALSE;
 		return;
 	}
-	active_clients = active_clients | ClientBitFlag(cno);
+	ClientSetActive(cno);
 
 	self.b_clientno = cno;
 	self.ishuman = TRUE;
@@ -622,7 +631,7 @@ void() ClientDisconnected =
 	if (self._last)
 		self._last._next = self._next;
 
-	active_clients = active_clients - (active_clients & ClientBitFlag(self.b_clientno));
+	ClientClearActive(self.b_clientno);
 };
 /*
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -746,6 +755,11 @@ void() BotInit =
 	local entity ent, fisent;
 	local float numents;
 
+	active_clients1 = 0;
+	active_clients2 = 0;
+	bot_count = 0;
+	current_bots = 0;
+
 	// The engine reserves the first maxclients edicts for client slots.
 	// Count those slots from the engine cvar, not from currently spawned entities.
 	max_clients = cvar("maxclients");
@@ -801,92 +815,113 @@ void(entity who) UpdateClient =
 	WriteShort (MSG_ALL, who.frags);
 };
 
+float(float clientno) ClientBitBank =
+{
+	if (clientno >= 16)
+		return 2;
+	return 1;
+};
+
 float(float clientno) ClientBitFlag =
 {
-	// bigger, but faster
-	if (clientno == 0)
-		return 1;
-	else if (clientno == 1)
-		return 2;
-	else if (clientno == 2)
-		return 4;
-	else if (clientno == 3)
-		return 8;
-	else if (clientno == 4)
-		return 16;
-	else if (clientno == 5)
-		return 32;
-	else if (clientno == 6)
-		return 64;
-	else if (clientno == 7)
-		return 128;
-	else if (clientno == 8)
-		return 256;
-	else if (clientno == 9)
-		return 512;
-	else if (clientno == 10)
-		return 1024;
-	else if (clientno == 11)
-		return 2048;
-	else if (clientno == 12)
-		return 4096;
-	else if (clientno == 13)
-		return 8192;
-	else if (clientno == 14)
-		return 16384;
-	else if (clientno == 15)
-		return 32768;
-	else if (clientno == 16)
-		return 65536;
-	else if (clientno == 17)
-		return 131072;
-	else if (clientno == 18)
-		return 262144;
-	else if (clientno == 19)
-		return 524288;
-	else if (clientno == 20)
-		return 1048576;
-	else if (clientno == 21)
-		return 2097152;
-	else if (clientno == 22)
-		return 4194304;
-	else if (clientno == 23)
-		return 8388608;
-	else if (clientno == 24)
-		return 16777216;
-	else if (clientno == 25)
-		return 33554432;
-	else if (clientno == 26)
-		return 67108864;
-	else if (clientno == 27)
-		return 134217728;
-	else if (clientno == 28)
-		return 268435456;
-	else if (clientno == 29)
-		return 536870912;
-	else if (clientno == 30)
-		return 1073741824;
-	else if (clientno == 31)
-		return 2147483648;
-	return 0;
+	local float bit;
+	if (clientno < 0)
+		return 0;
+	while (clientno >= 16)
+		clientno = clientno - 16;
+	bit = 1;
+	while (clientno > 0)
+	{
+		bit = bit * 2;
+		clientno = clientno - 1;
+	}
+	return bit;
+};
+
+float(float clientno) BotBitFlag =
+{
+	local float bit;
+	if (clientno < 0 || clientno >= 32)
+		return 0;
+	bit = 1;
+	while (clientno > 0)
+	{
+		bit = bit * 2;
+		clientno = clientno - 1;
+	}
+	return bit;
+};
+
+float(float clientno) ClientIsActive =
+{
+	if (clientno < 0 || clientno >= max_clients)
+		return FALSE;
+	if (ClientBitBank(clientno) == 1)
+		return (active_clients1 & ClientBitFlag(clientno)) != 0;
+	return (active_clients2 & ClientBitFlag(clientno)) != 0;
+};
+
+void(float clientno) ClientSetActive =
+{
+	if (clientno < 0 || clientno >= max_clients)
+		return;
+	if (ClientBitBank(clientno) == 1)
+		active_clients1 = active_clients1 | ClientBitFlag(clientno);
+	else
+		active_clients2 = active_clients2 | ClientBitFlag(clientno);
+};
+
+void(float clientno) ClientClearActive =
+{
+	if (clientno < 0 || clientno >= max_clients)
+		return;
+	if (ClientBitBank(clientno) == 1)
+		active_clients1 = active_clients1 - (active_clients1 & ClientBitFlag(clientno));
+	else
+		active_clients2 = active_clients2 - (active_clients2 & ClientBitFlag(clientno));
+};
+
+float(entity waypoint, float clientno) ClientRouteHas =
+{
+	if (!waypoint || clientno < 0 || clientno >= max_clients)
+		return FALSE;
+	if (ClientBitBank(clientno) == 1)
+		return (waypoint.b_route1 & ClientBitFlag(clientno)) != 0;
+	return (waypoint.b_route2 & ClientBitFlag(clientno)) != 0;
+};
+
+void(entity waypoint, float clientno) ClientRouteClear =
+{
+	if (!waypoint || clientno < 0 || clientno >= max_clients)
+		return;
+	if (ClientBitBank(clientno) == 1)
+		waypoint.b_route1 = waypoint.b_route1 - (waypoint.b_route1 & ClientBitFlag(clientno));
+	else
+		waypoint.b_route2 = waypoint.b_route2 - (waypoint.b_route2 & ClientBitFlag(clientno));
+};
+
+void(entity waypoint, float clientno) ClientRouteMark =
+{
+	if (!waypoint || clientno < 0 || clientno >= max_clients)
+		return;
+	if (ClientBitBank(clientno) == 1)
+		waypoint.b_route1 = waypoint.b_route1 | ClientBitFlag(clientno);
+	else
+		waypoint.b_route2 = waypoint.b_route2 | ClientBitFlag(clientno);
 };
 
 float() ClientNextAvailable =
 {
 	local float clientno;
-
-	clientno = max_clients;
-	while(clientno > 0)
+	clientno = 0;
+	while (clientno < max_clients)
 	{
-		clientno = clientno - 1;
-
-		if(!(active_clients & ClientBitFlag(clientno)))
+		if (!ClientIsActive(clientno))
 			return clientno;
+		clientno = clientno + 1;
 	}
-
 	return -1;
 };
-
 
 void(entity e1, entity e2, float flag) DeveloperLightning =
 {
@@ -1021,12 +1056,12 @@ void(float whichteam, float whatbot, float whatskill) BotConnect =
 	ClientConnect();
 	PutClientInServer();
 
-	active_clients = active_clients | ClientBitFlag(f);
+	ClientSetActive(f);
 
 	// this is risky... could corrupt .way files if done wrong
 	// If you're not the gambling type, comment this out
 
-	f = ClientBitFlag(self.b_num - 1);
+	f = BotBitFlag(self.b_num - 1);
 	current_bots = current_bots | f;
 
 	if (self.b_num <= 8)
@@ -1069,7 +1104,7 @@ void(entity bot) BotDisconnect =
 	self = bot;
 
 	bot_count = bot_count - 1;
-	current_bots = current_bots - (current_bots & ClientBitFlag(self.b_num - 1));
+	current_bots = current_bots - (current_bots & BotBitFlag(self.b_num - 1));
 	h = ftos(current_bots);
 	cvar_set("scratch1", h);
 
@@ -1092,7 +1127,7 @@ void(entity bot) BotDisconnect =
 		self.b_shirt = 0;
 		self.ammo_shells = self.ammo_nails = self.ammo_rockets = self.ammo_cells = 0;
 		UpdateClient(self);
-		active_clients = active_clients - (active_clients & ClientBitFlag(self.b_clientno));
+		ClientClearActive(self.b_clientno);
 	      self.b_clientno = -1;
    	}
 	self = uself;
@@ -1111,9 +1146,9 @@ void(float clientno) BotInvalidClientNo =
 	local entity bot;
 
 	bot = GetClientEntity(clientno);
-	if (bot.b_clientno >= 0)
+	if (bot.b_clientno == clientno && !bot.ishuman)
 	{
-		if (active_clients & ClientBitFlag(clientno))
+		if (ClientIsActive(clientno))
 		{
 			BotDisconnect(bot);
 			BotConnect(0, bot.b_num, bot.b_skill);
@@ -1263,14 +1298,14 @@ void() BotFrame =
 	sv_stopspeed = cvar("sv_stopspeed");
 	real_frametime = frametime; // in NQ this is alright
 
-	self = nextent(world);
 	num = 0;
 	human_count = 0;
 	while (num < max_clients)
 	{
+		self = GetClientEntity(num);
 		if (self.ishuman == FALSE)
 		{
-			if (active_clients & ClientBitFlag(num))
+			if (ClientIsActive(num))
 			{
 				frik_obstacles();
 				CL_KeyMove();
@@ -1280,7 +1315,6 @@ void() BotFrame =
 		} else {
 			human_count += 1;
 		}
-		self = nextent(self);
 		num = num + 1;
 	}
 	WaypointWatch();
