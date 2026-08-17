@@ -179,37 +179,13 @@ set(CMAKE_EXE_LINKER_FLAGS ${DRY_LDFLAGS_STR})
 #
 
 # this seems to be how you do "package management"
-include(FetchContent)
-
 # m = math
 set(DRY_LIBS
   "m"
 )
 
-# emscripten bundles SDL2, so we only need to actually pull it for native builds
+# Emscripten bundles SDL2; native builds use the system SDL2 package.
 if (NOT EMSCRIPTEN)
-  # FetchContent_Declare(
-  #   SDL3
-  #   GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-  #   GIT_TAG release-3.4.12pacman -Qe | grep sdl
-
-  # )
-  
-  # FetchContent_MakeAvailable(SDL3)
-
-  # FetchContent_Declare(
-  #   SDL2
-  #   GIT_REPOSITORY https://github.com/libsdl-org/sdl2-compat.git
-  #   GIT_TAG release-2.32.70
-  # )
-
-  # FetchContent_MakeAvailable(SDL2)
-
-  # set(DRY_LIBS ${DRY_LIBS}
-  #   "SDL2::SDL2"
-  # )
-  
-  # TODO: CachyOS hack
   find_package(SDL2 CONFIG REQUIRED)
 endif()
 
