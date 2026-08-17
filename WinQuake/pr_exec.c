@@ -20,6 +20,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 /*
 
 */
@@ -322,6 +326,11 @@ void PR_ExecuteProgram(func_t fnum) {
 
     if (!--runaway)
       PR_RunError("runaway loop error");
+
+#ifdef __EMSCRIPTEN__
+    if ((runaway & 8191) == 0)
+      emscripten_sleep(1);
+#endif
 
     pr_xfunction->profile++;
     pr_xstatement = s;

@@ -62,12 +62,6 @@
       width = Math.round(width);
       height = Math.round(height);
 
-      const currentAspectRatio = width / height;
-
-      console.log(
-        `width: ${width}, height: ${height}, desiredAspectRatio: ${desiredAspectRatio}, currentAspectRatio: ${currentAspectRatio}`,
-      );
-
       //
       // work out the WebSocket URL (should be the immediate parent of this URL + /ws)
       //
@@ -141,6 +135,35 @@
 
       if (!arguments.includes("-height")) {
         arguments.push("-height", height);
+      }
+
+      const widthArg = arguments.indexOf("-width");
+      const heightArg = arguments.indexOf("-height");
+      const requestedWidth = Number(arguments[widthArg + 1]);
+      const requestedHeight = Number(arguments[heightArg + 1]);
+      const quakeWidth = Number.isFinite(requestedWidth) && requestedWidth > 0 ? requestedWidth : width;
+      const quakeHeight = Number.isFinite(requestedHeight) && requestedHeight > 0 ? requestedHeight : height;
+      const currentAspectRatio = quakeWidth / quakeHeight;
+
+      // Pointer-lock movement is reported in display-relative units. Convert it
+      // to equivalent movement in the effective Quake render dimensions so
+      // browser sensitivity does not depend on the desktop resolution.
+      const devicePixelRatio = Number(window.devicePixelRatio) || 1;
+      const desktopWidth = window.screen?.width ? window.screen.width * devicePixelRatio : quakeWidth;
+      const desktopHeight = window.screen?.height ? window.screen.height * devicePixelRatio : quakeHeight;
+      const mouseScaleX = quakeWidth / desktopWidth;
+      const mouseScaleY = quakeHeight / desktopHeight;
+
+      console.log(
+        `width: ${quakeWidth}, height: ${quakeHeight}, desiredAspectRatio: ${desiredAspectRatio}, currentAspectRatio: ${currentAspectRatio}, devicePixelRatio: ${devicePixelRatio}, mouseScaleX: ${mouseScaleX}, mouseScaleY: ${mouseScaleY}`,
+      );
+
+      if (!arguments.includes("-mouse_scale_x")) {
+        arguments.push("-mouse_scale_x", mouseScaleX);
+      }
+
+      if (!arguments.includes("-mouse_scale_y")) {
+        arguments.push("-mouse_scale_y", mouseScaleY);
       }
 
       arguments = arguments.filter((x) => x !== "websocketurl");

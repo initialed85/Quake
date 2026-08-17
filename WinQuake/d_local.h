@@ -96,7 +96,10 @@ extern int d_scantable[MAXHEIGHT];
 
 extern int d_vrectx, d_vrecty, d_vrectright_particle, d_vrectbottom_particle;
 
-extern int d_y_aspect_shift, d_pix_min, d_pix_max, d_pix_shift;
+extern int d_y_aspect_shift, d_pix_min, d_pix_max;
+extern float d_pix_scale;
+
+extern byte d_partblendtable[256 * 256];
 
 extern pixel_t *d_viewbuffer;
 

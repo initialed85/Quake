@@ -797,7 +797,11 @@ void PF_cvar(void) {
 
   str = G_STRING(OFS_PARM0);
 
-  G_FLOAT(OFS_RETURN) = Cvar_VariableValue(str);
+  // maxclients is derived from the engine's allocated client slots.
+  if (!Q_strcmp(str, "maxclients"))
+    G_FLOAT(OFS_RETURN) = svs.maxclients;
+  else
+    G_FLOAT(OFS_RETURN) = Cvar_VariableValue(str);
 }
 
 /*
@@ -812,6 +816,9 @@ void PF_cvar_set(void) {
 
   var = G_STRING(OFS_PARM0);
   val = G_STRING(OFS_PARM1);
+
+  if (!Q_strcmp(var, "maxclients"))
+    return;
 
   Cvar_Set(var, val);
 }

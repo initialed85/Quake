@@ -663,8 +663,11 @@ int NET_SendToAll(sizebuf_t *data, int blocktime) {
 
   for (i = 0, host_client = svs.clients; i < svs.maxclients;
        i++, host_client++) {
-    if (!host_client->netconnection)
+    if (!host_client->netconnection) {
+      state1[i] = true;
+      state2[i] = true;
       continue;
+    }
     if (host_client->active) {
       if (host_client->netconnection->driver == 0) {
         NET_SendMessage(host_client->netconnection, data);
@@ -707,6 +710,10 @@ int NET_SendToAll(sizebuf_t *data, int blocktime) {
         continue;
       }
     }
+#ifdef __EMSCRIPTEN__
+    if (count)
+      emscripten_sleep(1);
+#endif
     if ((Sys_FloatTime() - start) > blocktime)
       break;
   }

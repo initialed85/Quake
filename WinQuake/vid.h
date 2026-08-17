@@ -80,3 +80,6 @@ int VID_SetMode(int modenum, unsigned char *palette);
 
 void VID_HandlePause(qboolean pause);
 // called only on Win32, when pause happens, so the mouse can be released
+
+void VID_GrabMouse(qboolean grab);
+// grab/release the mouse to the window (relative mouse mode + pointer lock)

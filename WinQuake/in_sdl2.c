@@ -11,11 +11,9 @@ added by initialed85
 #include "quakedef.h"
 #include "sys_sdl2.h"
 
-// WASM movement "feels" like a sensitivity 11 is more like sensitivity 9
 #ifdef __EMSCRIPTEN__
-#define INPUT_SCALE 1.5
-#else
-#define INPUT_SCALE 1.0
+static float mouse_scale_x = 1.0f;
+static float mouse_scale_y = 1.0f;
 #endif
 
 cvar_t m_filter = {"m_filter", "1"};
@@ -23,7 +21,26 @@ cvar_t m_filter = {"m_filter", "1"};
 float mouse_x, mouse_y;
 float old_mouse_x, old_mouse_y;
 
-void IN_Init(void) { Cvar_RegisterVariable(&m_filter); }
+void IN_Init(void) {
+  Cvar_RegisterVariable(&m_filter);
+
+#ifdef __EMSCRIPTEN__
+  int pnum;
+
+  pnum = COM_CheckParm("-mouse_scale_x");
+  if (pnum && pnum < com_argc - 1)
+    mouse_scale_x = Q_atof(com_argv[pnum + 1]);
+
+  pnum = COM_CheckParm("-mouse_scale_y");
+  if (pnum && pnum < com_argc - 1)
+    mouse_scale_y = Q_atof(com_argv[pnum + 1]);
+
+  if (mouse_scale_x <= 0.0f)
+    mouse_scale_x = 1.0f;
+  if (mouse_scale_y <= 0.0f)
+    mouse_scale_y = 1.0f;
+#endif
+}
 
 void IN_Shutdown(void) {}
 
@@ -53,8 +70,10 @@ void IN_Move(usercmd_t *cmd) {
   mouse_x *= sensitivity.value;
   mouse_y *= sensitivity.value;
 
-  mouse_x *= INPUT_SCALE;
-  mouse_y *= INPUT_SCALE;
+#ifdef __EMSCRIPTEN__
+  mouse_x *= mouse_scale_x;
+  mouse_y *= mouse_scale_y;
+#endif
 
   if (in_mlook.state & 1)
     V_StopPitchDrift();

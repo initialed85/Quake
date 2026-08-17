@@ -34,11 +34,15 @@ static SDL_Surface *quake_surface;
 static SDL_Texture *texture = NULL;
 static int screen_width = BASEWIDTH;
 static int screen_height = BASEHEIGHT;
+static int render_width = 0;
+static int render_height = 0;
 
 void VID_SetPalette(unsigned char *palette) {
   SDL_Color sdl_palette[256];
 
   int i;
+
+  static qboolean blend_table_built = false;
 
   // ref.: https://quakewiki.org/wiki/Quake_palette#palette.lmp
   // basically the palette is 256 RGB colours (so 3 bytes each)
@@ -62,11 +66,43 @@ void VID_SetPalette(unsigned char *palette) {
     SDL_Log("Failed to SDL_SetPaletteColors(quake_surface->format->palette, "
             "sdl_palette, 0, 256): %s",
             SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
+    Sys_Error("SDL init failure");
+  }
+
+  // build the 256x256 particle alpha blend table: for each pair of palette
+  // indices (a, b), find the nearest palette entry to a 50% mix of their RGB
+  // values. used by D_DrawParticle for semi-transparent particles. only built
+  // once from the base palette; screen flashes (VID_ShiftPalette) change the
+  // palette frequently but the blend table stays the same.
+  if (!blend_table_built) {
+    int a, b, k;
+    for (a = 0; a < 256; a++) {
+      for (b = 0; b < 256; b++) {
+        int ar = palette[a * 3 + 0];
+        int ag = palette[a * 3 + 1];
+        int ab_ = palette[a * 3 + 2];
+        int br = palette[b * 3 + 0];
+        int bg = palette[b * 3 + 1];
+        int bb_ = palette[b * 3 + 2];
+        int mr = (ar + br) / 2;
+        int mg = (ag + bg) / 2;
+        int mb = (ab_ + bb_) / 2;
+        int best = 0;
+        int bestdist = 0x7fffffff;
+        for (k = 0; k < 256; k++) {
+          int dr = mr - (int)palette[k * 3 + 0];
+          int dg = mg - (int)palette[k * 3 + 1];
+          int db = mb - (int)palette[k * 3 + 2];
+          int dist = dr * dr + dg * dg + db * db;
+          if (dist < bestdist) {
+            bestdist = dist;
+            best = k;
+          }
+        }
+        d_partblendtable[a * 256 + b] = (byte)best;
+      }
+    }
+    blend_table_built = true;
   }
 }
 
@@ -101,18 +137,6 @@ void VID_Init(unsigned char *palette) {
     }
   }
 
-  // these two seem to cause the mouse cursor to disappear favourably
-  SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "1",
-                          SDL_HINT_OVERRIDE);
-  if (SDL_SetRelativeMouseMode(SDL_TRUE) < 0) {
-    SDL_Log("Failed to SDL_SetRelativeMouseMode(SDL_TRUE): %s", SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
-  };
-
   if ((pnum = COM_CheckParm("-width"))) {
     if (pnum >= com_argc - 1)
       Sys_Error("VID: -width <width>\n");
@@ -141,6 +165,35 @@ void VID_Init(unsigned char *palette) {
     window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
   }
 
+  // internal render resolution: if specified, the software rasterizer renders
+  // at this size and the GPU bilinear-scales to the window/screen size. if not
+  // specified, defaults to screen_width x screen_height (1:1, no scaling).
+  render_width = screen_width;
+  render_height = screen_height;
+
+  if ((pnum = COM_CheckParm("-internalwidth"))) {
+    if (pnum >= com_argc - 1)
+      Sys_Error("VID: -internalwidth <width>\n");
+    render_width = Q_atoi(com_argv[pnum + 1]);
+    if (!render_width)
+      Sys_Error("VID: Bad internal width\n");
+  }
+
+  if ((pnum = COM_CheckParm("-internalheight"))) {
+    if (pnum >= com_argc - 1)
+      Sys_Error("VID: -internalheight <height>\n");
+    render_height = Q_atoi(com_argv[pnum + 1]);
+    if (!render_height)
+      Sys_Error("VID: Bad internal height\n");
+  }
+
+  // enable bilinear filtering when the texture is scaled up (only has an
+  // effect when internal resolution < screen resolution)
+  if (render_width != screen_width || render_height != screen_height)
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+  else
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+
   // window is the literal window to display what we render
   window =
       SDL_CreateWindow("Quake", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -150,11 +203,39 @@ void VID_Init(unsigned char *palette) {
             "SDL_WINDOWPOS_CENTERED, screen_width, screen_height, "
             "window_flags): %s",
             SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
+    Sys_Error("SDL init failure");
+  }
+
+  {
+    fprintf(stderr, "VID_Init: video driver = %s, render %dx%d -> screen %dx%d\n",
+            SDL_GetCurrentVideoDriver(), render_width, render_height,
+            screen_width, screen_height);
+  }
+
+  //
+  // these seem to cause the mouse cursor to disappear favourably
+  //
+
+  // do NOT force warp-based relative mouse mode: on Wayland the pointer cannot
+  // be warped, so doing so degrades to bounded behaviour (the cursor runs into
+  // the window edge and you can't look all the way around). let SDL use the
+  // native relative pointer protocol instead.
+  SDL_SetHintWithPriority(SDL_HINT_MOUSE_RELATIVE_MODE_WARP, "0",
+                          SDL_HINT_OVERRIDE);
+
+  SDL_SetHintWithPriority(SDL_HINT_VIDEO_WAYLAND_EMULATE_MOUSE_WARP, "0",
+                          SDL_HINT_OVERRIDE);
+
+  // grab the mouse to the window: on Wayland this drives
+  // zwp_confined_pointer_v1, which is what actually keeps the cursor from
+  // leaving the window. relative mode alone is supposed to do this too, but on
+  // some compositors (GNOME/Mutter) the lock isn't granted until the window
+  // has pointer focus, which it won't have yet at creation time. the actual
+  // grab is deferred to the first SDL_WINDOWEVENT_FOCUS_GAINED (handled in
+  // sys_sdl2.c::Sys_SendKeyEvents()).
+  if (SDL_SetRelativeMouseMode(SDL_TRUE) < 0) {
+    SDL_Log("Failed to SDL_SetRelativeMouseMode(SDL_TRUE): %s", SDL_GetError());
+    Sys_Error("SDL init failure");
   }
 
   // renderer is what paints onto the window I guess
@@ -163,70 +244,59 @@ void VID_Init(unsigned char *palette) {
     SDL_Log("Failed to SDL_CreateRenderer(window, -1, "
             "SDL_RENDERER_PRESENTVSYNC): %s",
             SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
+    Sys_Error("SDL init failure");
   }
 
   // the surface is what we paint the video buffer onto
-  quake_surface = SDL_CreateRGBSurfaceWithFormat(0, screen_width, screen_height,
+  quake_surface = SDL_CreateRGBSurfaceWithFormat(0, render_width, render_height,
                                                  8, SDL_PIXELFORMAT_INDEX8);
   if (!quake_surface) {
-    SDL_Log("Failed to SDL_CreateRGBSurfaceWithFormat(0, screen_width, "
-            "screen_height, 8, SDL_PIXELFORMAT_INDEX8): %s",
+    SDL_Log("Failed to SDL_CreateRGBSurfaceWithFormat(0, render_width, "
+            "render_height, 8, SDL_PIXELFORMAT_INDEX8): %s",
             SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
+    Sys_Error("SDL init failure");
   }
 
   // texture seems to be a buffer we can write to that the renderer
   // will read from
   texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32,
-                              SDL_TEXTUREACCESS_STREAMING, screen_width,
-                              screen_height);
+                              SDL_TEXTUREACCESS_STREAMING, render_width,
+                              render_height);
   if (!texture) {
     SDL_Log("Failed to SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA32, "
-            "SDL_TEXTUREACCESS_STREAMING, screen_width, screen_height): %s",
+            "SDL_TEXTUREACCESS_STREAMING, render_width, render_height): %s",
             SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
+    Sys_Error("SDL init failure");
   }
 
   //
   // Set up Quake's video state
   //
 
-  vid_buffer = calloc(screen_width * screen_height, sizeof(byte));
-  zbuffer = calloc(screen_width * screen_height, sizeof(short));
+  vid_buffer = calloc(render_width * render_height, sizeof(byte));
+  zbuffer = calloc(render_width * render_height, sizeof(short));
 
-  vid.width = vid.conwidth = screen_width;
-  vid.height = vid.conheight = screen_height;
+  vid.width = vid.conwidth = render_width;
+  vid.height = vid.conheight = render_height;
 
   if (vid.width > MAXWIDTH || vid.height > MAXHEIGHT) {
-    SDL_Log("Failed VID_Init(unsigned char *palette) because vid.width (%d) > MAXWIDTH (%d) and / or vid.height (%d) > MAXHEIGHT (%d))",
+    SDL_Log("Failed VID_Init(unsigned char *palette) because vid.width (%d) > "
+            "MAXWIDTH (%d) and / or vid.height (%d) > MAXHEIGHT (%d))",
             vid.width, MAXWIDTH, vid.height, MAXHEIGHT);
   }
 
   // the WARP_WIDTH and WARP_HEIGHT constants are used elsewhere relating to
   // warping (water / lava?) in a way that affects memory alignment, so these
   // struct properties must be set this way to avoid segfaults
-  vid.maxwarpwidth = WARP_WIDTH;
-  vid.maxwarpheight = WARP_HEIGHT;
+  vid.maxwarpwidth = vid.width;
+  vid.maxwarpheight = vid.height;
 
   vid.aspect = ((float)vid.height / (float)vid.width) * (320.0 / 200.0);
   vid.numpages = 2;
   vid.colormap = host_colormap;
   vid.fullbright = 256 - LittleLong(*((int *)vid.colormap + 2048));
   vid.buffer = vid.conbuffer = vid_buffer;
-  vid.rowbytes = vid.conrowbytes = screen_width;
+  vid.rowbytes = vid.conrowbytes = render_width;
 
   d_pzbuffer = zbuffer;
   D_InitCaches(surfcache, sizeof(surfcache));
@@ -234,6 +304,18 @@ void VID_Init(unsigned char *palette) {
   // Apply the initial palette
   if (palette)
     VID_SetPalette(palette);
+}
+
+void VID_GrabMouse(qboolean grab) {
+  if (!window)
+    return;
+  SDL_SetWindowMouseGrab(window, grab ? SDL_TRUE : SDL_FALSE);
+  if (grab) {
+    if (SDL_SetRelativeMouseMode(SDL_TRUE) < 0)
+      SDL_Log("VID_GrabMouse: SetRelativeMouseMode failed: %s", SDL_GetError());
+  } else {
+    SDL_SetRelativeMouseMode(SDL_FALSE);
+  }
 }
 
 void VID_Shutdown(void) {
@@ -245,7 +327,7 @@ void VID_Shutdown(void) {
 
 void VID_Update(vrect_t *rects) {
   // so here we slam the video buffer onto the surface
-  memcpy(quake_surface->pixels, vid.buffer, screen_width * screen_height);
+  memcpy(quake_surface->pixels, vid.buffer, render_width * render_height);
 
   // suck the quake surface pixels into a var
   byte *surfPixels = (byte *)quake_surface->pixels;
@@ -257,11 +339,7 @@ void VID_Update(vrect_t *rects) {
   if (SDL_LockTexture(texture, NULL, &pixels, &pitch) < 0) {
     SDL_Log("Failed SDL_LockTexture(texture, NULL, &pixels, &pitch): %s",
             SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
+    Sys_Error("SDL init failure");
   }
 
   // get a casted version of the pixels var above
@@ -272,7 +350,7 @@ void VID_Update(vrect_t *rects) {
   // suck the quake surface pixels out of the var, via the 8-bit colour to
   // 24-bit colour convesion table and onto casted version of the pixels var
   // that's connected to the texture
-  for (i = 0; i < screen_width * screen_height; i++) {
+  for (i = 0; i < render_width * render_height; i++) {
     texPixels[i] = d_8to24table[surfPixels[i]];
   }
 
@@ -281,22 +359,15 @@ void VID_Update(vrect_t *rects) {
   // clear some renderer buffer I guess
   if (SDL_RenderClear(renderer) < 0) {
     SDL_Log("Failed SDL_RenderClear(renderer): %s", SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
+    Sys_Error("SDL init failure");
   }
 
-  // replace the renderer buffer with the texture
+  // replace the renderer buffer with the texture; SDL will bilinear-scale
+  // from render_width x render_height up to screen_width x screen_height
   if (SDL_RenderCopy(renderer, texture, NULL, NULL) < 0) {
     SDL_Log("Failed SDL_RenderCopy(renderer, texture, NULL, NULL): %s",
             SDL_GetError());
-#ifdef __EMSCRIPTEN__
-    emscripten_force_exit(1);
-#else
-    exit(1);
-#endif
+    Sys_Error("SDL init failure");
   }
 
   // slam that on the screen

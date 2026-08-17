@@ -364,7 +364,7 @@ void Sbar_DrawNum(int x, int y, int num, int digits, int color) {
 
 int fragsort[MAX_SCOREBOARD];
 
-char scoreboardtext[MAX_SCOREBOARD][20];
+char scoreboardtext[MAX_SCOREBOARD][MAX_SCOREBOARDNAME + 8];
 int scoreboardtop[MAX_SCOREBOARD];
 int scoreboardbottom[MAX_SCOREBOARD];
 int scoreboardcount[MAX_SCOREBOARD];
@@ -398,6 +398,21 @@ void Sbar_SortFrags(void) {
 
 int Sbar_ColorForMap(int m) { return m < 128 ? m + 8 : m + 8; }
 
+static void Sbar_DrawClippedString(int x, int y, char *str) {
+  char name[MAX_SCOREBOARDNAME];
+  int maxchars;
+
+  maxchars = (vid.width - x) / 8;
+  if (maxchars <= 0)
+    return;
+  if (maxchars >= MAX_SCOREBOARDNAME)
+    maxchars = MAX_SCOREBOARDNAME - 1;
+
+  Q_strncpy(name, str, maxchars);
+  name[maxchars] = 0;
+  Draw_String(x, y, name);
+}
+
 /*
 ===============
 Sbar_UpdateScoreboard
@@ -416,7 +431,7 @@ void Sbar_UpdateScoreboard(void) {
   for (i = 0; i < scoreboardlines; i++) {
     k = fragsort[i];
     s = &cl.scores[k];
-    sprintf(&scoreboardtext[i][1], "%3i %s", s->frags, s->name);
+    snprintf(&scoreboardtext[i][1], sizeof(scoreboardtext[i]) - 1, "%3i %.*s", s->frags, MAX_SCOREBOARDNAME - 1, s->name);
 
     top = s->colors & 0xf0;
     bottom = (s->colors & 15) << 4;
@@ -994,7 +1009,7 @@ void Sbar_DeathmatchOverlay(void) {
 
   x = 80 + ((vid.width - 320) >> 1);
   y = 40;
-  for (i = 0; i < l; i++) {
+  for (i = 0; i < l && y + 8 <= vid.height; i++) {
     k = fragsort[i];
     s = &cl.scores[k];
     if (!s->name[0])
@@ -1038,8 +1053,8 @@ void Sbar_DeathmatchOverlay(void) {
 }
 #endif
 
-    // draw name
-    Draw_String(x + 64, y, s->name);
+    // draw name, clipped to the available scoreboard width
+    Sbar_DrawClippedString(x + 64, y, s->name);
 
     y += 10;
   }
@@ -1138,8 +1153,8 @@ void Sbar_MiniDeathmatchOverlay(void) {
 }
 #endif
 
-    // draw name
-    Draw_String(x + 48, y, s->name);
+    // draw name, clipped to the available scoreboard width
+    Sbar_DrawClippedString(x + 48, y, s->name);
 
     y += 8;
   }

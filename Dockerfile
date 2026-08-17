@@ -1,6 +1,6 @@
 FROM ubuntu:24.04
 
-RUN apt-get update && apt-get install -y clang-20 cmake git lldb valgrind
+RUN apt-get update && apt-get install -y clang-20 cmake git lldb valgrind libsdl2-dev
 
 RUN update-alternatives --install /usr/bin/cc cc /usr/bin/clang-20 100
 RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-20 100
@@ -20,10 +20,6 @@ RUN cp -frv /srv/WinQuake/build-native /srv/WinQuake/build-linux
 ENV LD_LIBRARY_PATH=/srv/WinQuake/build-linux
 
 WORKDIR /srv/WinQuake
-
-RUN test -e /srv/WinQuake/build-linux/libSDL2-2.0d.so.0.3200.4 && cp -frv /srv/WinQuake/build-linux/libSDL2-2.0d.so.0.3200.4 /usr/local/lib/libSDL2-2.0d.so.0.3200.4 || true
-
-RUN test -e /srv/WinQuake/build-linux/libSDL2-2.0.so.0.3200.4 && cp -frv /srv/WinQuake/build-linux/libSDL2-2.0.so.0.3200.4 /usr/local/lib/libSDL2-2.0.so.0.3200.4 || true
 
 RUN ln -s /usr/bin/llvm-symbolizer-20 /usr/bin/llvm-symbolizer
 

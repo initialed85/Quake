@@ -156,7 +156,7 @@ void Sys_Init(void) {
 
 void Sys_Error(char *error, ...) {
   fflush(stdout);
-  
+
   va_list argptr;
   char string[1024];
 
@@ -382,6 +382,16 @@ void Sys_SendKeyEvents(void) {
       return;
     }
 
+    // on Wayland, pointer lock / mouse grab can't be acquired until the
+    // window has input focus; grab it once focus is gained, release it on
+    // focus lost so alt-tab frees the mouse
+    if (event.type == SDL_WINDOWEVENT) {
+      if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)
+        VID_GrabMouse(true);
+      else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST)
+        VID_GrabMouse(false);
+    }
+
     // as in down as in pressed, up as in released
     if ((event.type == SDL_KEYDOWN) || (event.type == SDL_KEYUP)) {
       // a bunch of the Quake-side key codes are just their ASCII
@@ -526,8 +536,8 @@ void Sys_SendKeyEvents(void) {
   // last value we told it and the practical impact of that is that the mouse
   // will slowly track across the screen even though you're not touching it)
   if (!had_mouse_events) {
-    mx = (float)(event.motion.xrel);
-    my = (float)(event.motion.yrel);
+    mx = 0.0f;
+    my = 0.0f;
   }
 }
 

@@ -58,7 +58,7 @@ cvar_t saved1 = {"saved1", "0", true};
 cvar_t saved2 = {"saved2", "0", true};
 cvar_t saved3 = {"saved3", "0", true};
 cvar_t saved4 = {"saved4", "0", true};
-cvar_t botcount = {"botcount", "0"};
+cvar_t botcount = {"botcount", "-1"};
 
 #define MAX_FIELD_LEN 64
 #define GEFV_CACHESIZE 2

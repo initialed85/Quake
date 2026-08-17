@@ -632,13 +632,13 @@ entity(entity lastone) FindRoute =
 
 	if (lastone)
 	{
-		if (lastone.target1.b_sound & flag)
+		if (ClientRouteHas(lastone.target1, self.b_clientno))
 			return lastone.target1;
-		else if (lastone.target2.b_sound & flag)
+		else if (ClientRouteHas(lastone.target2, self.b_clientno))
 			return lastone.target2;
-		else if (lastone.target3.b_sound & flag)
+		else if (ClientRouteHas(lastone.target3, self.b_clientno))
 			return lastone.target3;
-		else if (lastone.target4.b_sound & flag)
+		else if (ClientRouteHas(lastone.target4, self.b_clientno))
 			return lastone.target4;
 	}
 
@@ -648,7 +648,7 @@ entity(entity lastone) FindRoute =
 	while(t)
 	{
 		tdst = vlen(t.origin - self.origin);
-		if ((tdst < dst) &&  (t.b_sound & flag))
+		if ((tdst < dst) &&  ClientRouteHas(t, self.b_clientno))
 		{
 			dst = tdst;
 			best = t;
@@ -690,7 +690,7 @@ void() ClearMyRoute =
 	t = way_head;
 	while (t)
 	{
-		t.b_sound = t.b_sound - (t.b_sound & flag);
+		ClientRouteClear(t, self.b_clientno);
 		t = t._next;
 	}
 };
@@ -736,11 +736,11 @@ void(entity this) mark_path =
 
 	while(t)
 	{
-		if (t.b_sound & flag)
+		if (ClientRouteHas(t, self.b_clientno))
 			return;
 		if (t == self.last_way)
 			return;
-		t.b_sound = t.b_sound | flag;
+		ClientRouteMark(t, self.b_clientno);
 		t = t.enemy;
 	}
 };

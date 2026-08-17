@@ -22,6 +22,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include "r_local.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 /*
 
 A server can allways be started, even if the system started out as a client
@@ -162,7 +166,7 @@ void Host_FindMaxClients(void) {
     if (i != (com_argc - 1)) {
       svs.maxclients = Q_atoi(com_argv[i + 1]);
     } else
-      svs.maxclients = 31;
+      svs.maxclients = MAX_SCOREBOARD;
   } else
     cls.state = ca_disconnected;
 
@@ -173,16 +177,16 @@ void Host_FindMaxClients(void) {
     if (i != (com_argc - 1))
       svs.maxclients = Q_atoi(com_argv[i + 1]);
     else
-      svs.maxclients = 31;
+      svs.maxclients = MAX_SCOREBOARD;
   }
   if (svs.maxclients < 1)
-    svs.maxclients = 31;
-  else if (svs.maxclients > MAX_SCOREBOARD -1)
-    svs.maxclients = MAX_SCOREBOARD -1;
+    svs.maxclients = MAX_SCOREBOARD;
+  else if (svs.maxclients > MAX_SCOREBOARD)
+    svs.maxclients = MAX_SCOREBOARD;
 
   svs.maxclientslimit = svs.maxclients;
   if (svs.maxclientslimit < 4)
-    svs.maxclientslimit = 31;
+    svs.maxclientslimit = MAX_SCOREBOARD;
   svs.clients =
       Hunk_AllocName(svs.maxclientslimit * sizeof(client_t), "clients");
 
@@ -414,6 +418,10 @@ void Host_ShutdownServer(qboolean crash) {
         }
       }
     }
+#ifdef __EMSCRIPTEN__
+    if (count)
+      emscripten_sleep(1);
+#endif
     if ((Sys_FloatTime() - start) > 3.0)
       break;
   } while (count);

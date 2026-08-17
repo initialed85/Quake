@@ -21,6 +21,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 char *svc_strings[] = {
     "svc_bad", "svc_nop", "svc_disconnect", "svc_updatestat",
     "svc_version",   // [long] server version
@@ -132,6 +136,10 @@ void CL_KeepaliveMessage(void) {
   int ret;
   sizebuf_t old;
   byte olddata[8192];
+
+#ifdef __EMSCRIPTEN__
+  emscripten_sleep(1);
+#endif
 
   if (sv.active)
     return; // no need if server is local
@@ -430,8 +438,13 @@ void CL_ParseUpdate(int bits) {
   else
     ent->msg_angles[0][2] = ent->baseline.angles[2];
 
+#ifdef __EMSCRIPTEN__
+  // Browser clients receive sparse WebSocket snapshots; interpolate step
+  // entities instead of making their movement visibly snap at packet rate.
+#else
   if (bits & U_NOLERP)
     ent->forcelink = true;
+#endif
 
   if (forcelink) { // didn't have an update last message
     VectorCopy(ent->msg_origins[0], ent->msg_origins[1]);
@@ -574,8 +587,8 @@ void CL_NewTranslation(int slot) {
   int top, bottom;
   byte *dest, *source;
 
-  if (slot > cl.maxclients)
-    Sys_Error("CL_NewTranslation: slot > cl.maxclients");
+  if (slot < 0 || slot >= cl.maxclients)
+    Sys_Error("CL_NewTranslation: slot >= cl.maxclients");
   dest = cl.scores[slot].translations;
   source = vid.colormap;
   memcpy(dest, vid.colormap, sizeof(cl.scores[slot].translations));
@@ -777,7 +790,11 @@ void CL_ParseServerMessage(void) {
       i = MSG_ReadByte();
       if (i >= cl.maxclients)
         Host_Error("CL_ParseServerMessage: svc_updatename > MAX_SCOREBOARD");
-      strcpy(cl.scores[i].name, MSG_ReadString());
+      {
+        char *name = MSG_ReadString();
+        Q_strncpy(cl.scores[i].name, name, sizeof(cl.scores[i].name) - 1);
+        cl.scores[i].name[sizeof(cl.scores[i].name) - 1] = 0;
+      }
       break;
 
     case svc_updatefrags:
