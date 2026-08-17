@@ -438,8 +438,13 @@ void CL_ParseUpdate(int bits) {
   else
     ent->msg_angles[0][2] = ent->baseline.angles[2];
 
+#ifdef __EMSCRIPTEN__
+  // Browser clients receive sparse WebSocket snapshots; interpolate step
+  // entities instead of making their movement visibly snap at packet rate.
+#else
   if (bits & U_NOLERP)
     ent->forcelink = true;
+#endif
 
   if (forcelink) { // didn't have an update last message
     VectorCopy(ent->msg_origins[0], ent->msg_origins[1]);

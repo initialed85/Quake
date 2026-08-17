@@ -26,6 +26,7 @@ right from your browser.
   - [DONE] Implement video w/ SDL2
   - [DONE] Implement keyboard w/ SDL2
   - [DONE] Implement mouse w/ SDL2
+  - [DONE] Scale browser mouse input for display resolution and device pixel ratio
   - [DONE] Implement audio w/ SDL2
 - [DONE] Provide build tooling for macOS, Linux and WASM (sorry about it Windows)
   - [DONE] Make Bash scripts for native (macOS / Linux) builds
@@ -46,6 +47,7 @@ right from your browser.
   - [DONE] Add optional lower internal render resolution with bilinear upscaling via `-internalwidth` / `-internalheight`
   - [DONE] Fix Wayland fullscreen cursor grabbing
   - [DONE] Avoid rebuilding the particle blend table on every screen flash
+  - [DONE] Smooth WASM step-entity movement between WebSocket snapshots
 - [DONE] Fix the NAT-related issues in the original UDP net code
   - You can control the port your client will use with the `-port` flag; e.g. if you wanted to run a server and 2 clients all on the same machine:
     - `./Quake -port 26000 +map start`
@@ -92,7 +94,7 @@ NOTE: You'll need to place your demo / purchased Quake resources at `WinQuake/id
 # build any time code changes
 ./watch-build-native.sh
 
-# run in a 1280x800 window (i.e. cd WinQuake && ./build-native/WinQuake -width 1280 -height 800)
+# run in a 1280x800 window
 ./run-native.sh
 ```
 
@@ -108,6 +110,9 @@ NOTE: You'll need to place your demo / purchased Quake resources at `WinQuake/id
 # run at http://localhost:80 (play using a browser)
 ./run-wasm.sh
 ```
+
+Browser mouse input is automatically adjusted using the current display
+resolution, device pixel ratio, and effective Quake render resolution.
 
 ### Docker
 
