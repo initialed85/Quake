@@ -622,7 +622,7 @@ void() ClientDisconnected =
 	if (self._last)
 		self._last._next = self._next;
 
-	active_clients = active_clients - active_clients & ClientBitFlag(self.b_clientno);
+	active_clients = active_clients - (active_clients & ClientBitFlag(self.b_clientno));
 };
 /*
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -1115,13 +1115,11 @@ void(float clientno) BotInvalidClientNo =
 	local entity bot;
 
 	bot = GetClientEntity(clientno);
-	if(bot.b_clientno > 0)
+	if (bot.b_clientno >= 0)
 	{
-		if (active_clients & ClientBitFlag(self.b_clientno))
+		if (active_clients & ClientBitFlag(clientno))
 		{
-			bot.b_clientno = -1;
 			BotDisconnect(bot);
-			active_clients = active_clients | ClientBitFlag(self.b_clientno);
 			BotConnect(0, bot.b_num, bot.b_skill);
 			return;
 		}
@@ -1295,17 +1293,29 @@ void() BotFrame =
 		bot_return();
 		
 	bot_count_cvar = cvar("botcount");
-	
-	local float f;
-	f = cvar("skill");
-	
-	// TODO; no protection for too many bots (crashes the game)
-	while (bot_count < bot_count_cvar) {
-		BotConnect(0, 0, f);
-	}
-	
-	while (bot_count > bot_count_cvar) {
-		KickABot();
+	if (bot_count_cvar >= 0)
+	{
+		local float f, target_bots, free_slots;
+		target_bots = floor(bot_count_cvar);
+		if (target_bots < 0)
+			target_bots = 0;
+		free_slots = max_clients - human_count;
+		if (target_bots > free_slots)
+			target_bots = free_slots;
+		while (bot_count < target_bots)
+		{
+			f = bot_count;
+			BotConnect(0, 0, cvar("skill"));
+			if (bot_count == f)
+				break;
+		}
+		while (bot_count > target_bots)
+		{
+			f = bot_count;
+			KickABot();
+			if (bot_count == f)
+				break;
+		}
 	}
 };
 
@@ -1325,15 +1335,26 @@ void() BotImpulses =
 	if (self.impulse == 100)
 	{
 		f = cvar("skill");
-		BotConnect(0, 0, f);
+		if (cvar("botcount") >= 0)
+			cvar_set("botcount", ftos(cvar("botcount") + 1));
+		else
+			BotConnect(0, 0, f);
 	}
 	else if (self.impulse == 101)
 	{
 		f = cvar("skill");
-		BotConnect(1, 0, f);
+		if (cvar("botcount") >= 0)
+			cvar_set("botcount", ftos(cvar("botcount") + 1));
+		else
+			BotConnect(1, 0, f);
 	}
 	else if (self.impulse == 102)
-		KickABot();
+	{
+		if (cvar("botcount") > 0)
+			cvar_set("botcount", ftos(cvar("botcount") - 1));
+		else if (cvar("botcount") < 0)
+			KickABot();
+	}
 	else if (self.impulse == 103)
 		botcam_u();
 	else if (self.impulse == 104)

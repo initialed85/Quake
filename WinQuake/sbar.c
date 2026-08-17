@@ -364,7 +364,7 @@ void Sbar_DrawNum(int x, int y, int num, int digits, int color) {
 
 int fragsort[MAX_SCOREBOARD];
 
-char scoreboardtext[MAX_SCOREBOARD][20];
+char scoreboardtext[MAX_SCOREBOARD][MAX_SCOREBOARDNAME + 8];
 int scoreboardtop[MAX_SCOREBOARD];
 int scoreboardbottom[MAX_SCOREBOARD];
 int scoreboardcount[MAX_SCOREBOARD];
@@ -416,7 +416,7 @@ void Sbar_UpdateScoreboard(void) {
   for (i = 0; i < scoreboardlines; i++) {
     k = fragsort[i];
     s = &cl.scores[k];
-    sprintf(&scoreboardtext[i][1], "%3i %s", s->frags, s->name);
+    snprintf(&scoreboardtext[i][1], sizeof(scoreboardtext[i]) - 1, "%3i %.*s", s->frags, MAX_SCOREBOARDNAME - 1, s->name);
 
     top = s->colors & 0xf0;
     bottom = (s->colors & 15) << 4;
@@ -1038,8 +1038,12 @@ void Sbar_DeathmatchOverlay(void) {
 }
 #endif
 
-    // draw name
-    Draw_String(x + 64, y, s->name);
+    // draw name, clipped to the available scoreboard width
+    {
+      char name[MAX_SCOREBOARDNAME];
+      Q_strncpy(name, s->name, sizeof(name) - 1);
+      Draw_String(x + 64, y, name);
+    }
 
     y += 10;
   }
@@ -1138,8 +1142,12 @@ void Sbar_MiniDeathmatchOverlay(void) {
 }
 #endif
 
-    // draw name
-    Draw_String(x + 48, y, s->name);
+    // draw name, clipped to the available scoreboard width
+    {
+      char name[MAX_SCOREBOARDNAME];
+      Q_strncpy(name, s->name, sizeof(name) - 1);
+      Draw_String(x + 48, y, name);
+    }
 
     y += 8;
   }

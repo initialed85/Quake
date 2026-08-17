@@ -582,8 +582,8 @@ void CL_NewTranslation(int slot) {
   int top, bottom;
   byte *dest, *source;
 
-  if (slot > cl.maxclients)
-    Sys_Error("CL_NewTranslation: slot > cl.maxclients");
+  if (slot < 0 || slot >= cl.maxclients)
+    Sys_Error("CL_NewTranslation: slot >= cl.maxclients");
   dest = cl.scores[slot].translations;
   source = vid.colormap;
   memcpy(dest, vid.colormap, sizeof(cl.scores[slot].translations));

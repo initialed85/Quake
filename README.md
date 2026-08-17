@@ -58,8 +58,11 @@ right from your browser.
 - [DONE] Fix server search not finding all virtual-LAN servers across matching ports
 - [DONE] Allow a server/browser entrypoint to provision an initial number of FrikBots via the `botcount` cvar
 - [TODO] Fix FrikBot occasionally entering a state where it will not attack (possibly related to runaway-loop protection)
-- [TODO] Add a safe range check for the custom `botcount` cvar; excessive bot counts can still crash the game
-- [TODO] Fix the bug where the local player's name can be missing from the scoreboard at `maxplayers 32`
+- [DONE] Add a safe range check for the custom `botcount` cvar; excessive bot counts are clamped to available slots
+- [DONE] Make `maxplayers 32` use the full supported scoreboard range
+- [DONE] Keep long scoreboard names from overflowing the legacy text buffer
+- [DONE] Fix botcount overriding manual bot impulses and guard botcount reconciliation against full servers
+- [DONE] Fix bot slot collision handling, slot-zero handling, and occupancy-mask precedence
 - [TODO] Fix crashes when too many players or bots try to connect / the QuakeC VM runs out of room
 
 ## Usage
