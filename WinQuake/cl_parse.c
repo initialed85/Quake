@@ -21,6 +21,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "quakedef.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 char *svc_strings[] = {
     "svc_bad", "svc_nop", "svc_disconnect", "svc_updatestat",
     "svc_version",   // [long] server version
@@ -132,6 +136,10 @@ void CL_KeepaliveMessage(void) {
   int ret;
   sizebuf_t old;
   byte olddata[8192];
+
+#ifdef __EMSCRIPTEN__
+  emscripten_sleep(1);
+#endif
 
   if (sv.active)
     return; // no need if server is local

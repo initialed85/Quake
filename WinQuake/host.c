@@ -22,6 +22,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "quakedef.h"
 #include "r_local.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 /*
 
 A server can allways be started, even if the system started out as a client
@@ -414,6 +418,10 @@ void Host_ShutdownServer(qboolean crash) {
         }
       }
     }
+#ifdef __EMSCRIPTEN__
+    if (count)
+      emscripten_sleep(1);
+#endif
     if ((Sys_FloatTime() - start) > 3.0)
       break;
   } while (count);

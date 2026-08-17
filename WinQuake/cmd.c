@@ -24,6 +24,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 void Cmd_ForwardToServer(void);
 
 #define MAX_ALIAS_NAME 32
+#define MAX_COMMANDS_PER_EXECUTE 4096
 
 typedef struct cmdalias_s {
   struct cmdalias_s *next;
@@ -132,8 +133,16 @@ void Cbuf_Execute(void) {
   char *text;
   char line[1024];
   int quotes;
+  int command_count = 0;
 
   while (cmd_text.cursize) {
+    command_count++;
+    if (command_count > MAX_COMMANDS_PER_EXECUTE) {
+      Con_Printf("Cbuf_Execute: command limit reached\n");
+      SZ_Clear(&cmd_text);
+      break;
+    }
+
     // find a \n or ; line break
     text = (char *)cmd_text.data;
 
