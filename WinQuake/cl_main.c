@@ -364,7 +364,7 @@ should be put at.
 ===============
 */
 float CL_LerpPoint(void) {
-  float f, frac;
+  double f, frac;
 
   f = cl.mtime[0] - cl.mtime[1];
 

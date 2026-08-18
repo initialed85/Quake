@@ -1191,7 +1191,7 @@ void Host_Spawn_f(void) {
 
   // send time of update
   MSG_WriteByte(&host_client->message, svc_time);
-  MSG_WriteFloat(&host_client->message, sv.time);
+  MSG_WriteFloat(&host_client->message, SV_ClientTime(host_client));
 
   for (i = 0, client = svs.clients; i < svs.maxclients; i++, client++) {
     MSG_WriteByte(&host_client->message, svc_updatename);

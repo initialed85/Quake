@@ -408,10 +408,15 @@ void SV_ReadClientMove(usercmd_t *move) {
   int i;
   vec3_t angle;
   int bits;
+  double client_time;
 
   // read ping time
+  client_time = MSG_ReadFloat();
+#ifdef __EMSCRIPTEN__
+  client_time += host_client->time_base;
+#endif
   host_client->ping_times[host_client->num_pings % NUM_PING_TIMES] =
-      sv.time - MSG_ReadFloat();
+      sv.time - client_time;
   host_client->num_pings++;
 
   // read current angles

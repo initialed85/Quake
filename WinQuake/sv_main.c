@@ -183,9 +183,22 @@ Sends the first message from the server to a connected client.
 This will be sent on the initial connection and upon each server load.
 ================
 */
+double SV_ClientTime(client_t *client) {
+#ifdef __EMSCRIPTEN__
+  return sv.time - client->time_base;
+#else
+  return sv.time;
+#endif
+}
+
 void SV_SendServerinfo(client_t *client) {
   char **s;
   char message[2048];
+
+#ifdef __EMSCRIPTEN__
+  // Keep the float timestamp small for the lifetime of this client.
+  client->time_base = sv.time;
+#endif
 
   MSG_WriteByte(&client->message, svc_print);
   sprintf(message, "%c\nVERSION %4.2f SERVER (%i CRC)", 2, VERSION, pr_crc);
@@ -692,7 +705,7 @@ qboolean SV_SendClientDatagram(client_t *client) {
   msg.cursize = 0;
 
   MSG_WriteByte(&msg, svc_time);
-  MSG_WriteFloat(&msg, sv.time);
+  MSG_WriteFloat(&msg, SV_ClientTime(client));
 
   // add the client specific data to the datagram
   SV_WriteClientdataToMessage(client->edict, &msg);

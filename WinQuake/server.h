@@ -82,6 +82,8 @@ typedef struct client_s {
   double last_message; // reliable messages must be sent
                        // periodically
 
+  double time_base; // server-time origin used by the WASM protocol
+
   struct qsocket_s *netconnection; // communications handle
 
   usercmd_t cmd;  // movement
@@ -207,6 +209,8 @@ extern jmp_buf host_abortserver;
 extern double host_time;
 
 extern edict_t *sv_player;
+
+double SV_ClientTime(client_t *client);
 
 //===========================================================
 
