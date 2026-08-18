@@ -78,6 +78,7 @@ void() bot_dodge_stuff =
 {
 	local entity foe;
 	local float avdist, foesz, flen, tsz;
+	local float ranking_guard;
 	local vector v;
 
 	if (waypoint_mode > WM_LOADED)
@@ -171,7 +172,8 @@ void() bot_dodge_stuff =
 	else
 	{
 		foe = player_head;
-		while(foe)
+		ranking_guard = 0;
+		while(foe && ranking_guard < max_clients)
 		{
 			if(foe != self)
 			{
@@ -198,6 +200,7 @@ void() bot_dodge_stuff =
 				}
 			}
 			foe = foe._next;
+			ranking_guard = ranking_guard + 1;
 		}
 	}
 };

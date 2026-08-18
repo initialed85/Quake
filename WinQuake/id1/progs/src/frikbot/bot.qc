@@ -235,6 +235,7 @@ void()				ClientDisconnect;
 void()				SetNewParms;
 
 // rankings
+void(entity who) ClientRemoveFromRankings;
 float(float clientno)		ClientBitBank;
 float(float clientno)		ClientBitFlag;
 float(float clientno)		BotBitFlag;
@@ -587,12 +588,48 @@ void() ClientFixRankings =
 	}
 };
 
+void(entity who) ClientRemoveFromRankings =
+{
+	local entity previous, current, nextnode;
+	local float guard;
+
+	previous = world;
+	current = player_head;
+	guard = 0;
+	while (current && guard < max_clients)
+	{
+		nextnode = current._next;
+		if (current == who)
+		{
+			if (previous)
+				previous._next = nextnode;
+			else
+				player_head = nextnode;
+			if (nextnode)
+				nextnode._last = previous;
+			break;
+		}
+		previous = current;
+		current = nextnode;
+		guard = guard + 1;
+	}
+
+	// A cycle or overlong chain must not survive into the next AI pass.
+	if (current && guard >= max_clients && previous)
+		previous._next = world;
+	if (player_head)
+		player_head._last = world;
+	who._next = world;
+	who._last = world;
+};
+
 void() ClientInRankings =
 {
 	local float cno;
 
-   	cno = self.colormap - 1;
+    cno = self.colormap - 1;
 	BotInvalidClientNo (cno);
+	ClientRemoveFromRankings(self);
 
 	if (player_head)
 		player_head._last = self;
@@ -624,13 +661,7 @@ void() ClientInRankings =
 
 void() ClientDisconnected =
 {
-	if (player_head == self)
-		player_head = self._next;
-	if (self._next)
-		self._next._last = self._last;
-	if (self._last)
-		self._last._next = self._next;
-
+	ClientRemoveFromRankings(self);
 	ClientClearActive(self.b_clientno);
 };
 /*
